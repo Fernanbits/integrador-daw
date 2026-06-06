@@ -1,0 +1,66 @@
+<app-template>
+    <!-- Panel Superior-->
+    <div style="background-color: #1a1a24; padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center;">
+        <input
+            type="text"
+            placeholder="Buscar proyecto por nombre..."
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event); buscarOFiltrar()"
+            style="flex: 2; padding: 0.6rem; border-radius: 6px; border: 1px solid #3a3a4c; background: #0f0f11; color: white;"
+        />
+        <select
+            [ngModel]="estadoFiltro()"
+            (ngModelChange)="estadoFiltro.set($event); buscarOFiltrar()"
+            style="flex: 1; padding: 0.6rem; border-radius: 6px; border: 1px solid #3a3a4c; background: #0f0f11; color: white;"
+        >
+            <option value="">Todos los Estados</option>
+            <option value="ACTIVO">Activos</option>
+            <option value="FINALIZADO">Finalizados</option>
+            <option value="BAJA">Dados de Baja</option>
+        </select>
+    </div>
+
+    <p-button id="boton-crear-proyecto" icon="pi pi-plus" label="Crear Proyecto" (click)="crearProyecto()"></p-button>
+
+    <p-table id="tabla" [value]="proyectos()" [tableStyle]="{ 'min-width': '50rem'}" [scrollable]="true" scrollHeight="60vh">
+        <ng-template #header>
+            <tr>
+                <th>Nombre del Proyecto</th>
+                <th>Cliente Asociado</th>
+                <th>Estado Actual</th>
+                <th>Acciones</th>
+            </tr>
+        </ng-template>
+        <ng-template #body let-proyecto>
+            <tr>
+                <td><strong>{{ proyecto.nombre }}</strong></td>
+                <td>
+                    @if (proyecto.cliente) {
+                        <span style="color: #00d2ff;">💼 {{ proyecto.cliente.nombre }}</span>
+                    } @else {
+                        <span style="color: #a0aec0; font-style: italic;">⚙️ Desarrollo Interno</span>
+                    }
+                </td>
+                <td>{{ proyecto.estado }}</td>
+                <td>
+                    <p-button id="boton-gestionar-tareas" icon="pi pi-list" pTooltip="Gestionar Tareas (Kanban)" (click)="gestionarTareas(proyecto)"></p-button>
+                    <p-button icon="pi pi-pencil" pTooltip="Editar Parámetros" (click)="editarProyecto(proyecto)"></p-button>
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+            <tr>
+                <td colspan="4" style="text-align: center; padding: 2rem;">No se encontraron registros en Estudio Fluido Digital.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+
+    <!-- Controles Inferiores de Paginación -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding: 1rem; background: #1a1a24; border-radius: 8px;">
+        <button [disabled]="currentPage() === 1" (click)="cambiarPagina(currentPage() - 1)" style="padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">« Anterior</button>
+        <span style="color: white;">Página {{ currentPage() }} de {{ totalPages() }}</span>
+        <button [disabled]="currentPage() === totalPages()" (click)="cambiarPagina(currentPage() + 1)" style="padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">Siguiente »</button>
+    </div>
+</app-template>
+
+<app-gestion-proyecto [(visible)]="dialogVisible" [(proyectoSeleccionado)]="proyectoSeleccionado"></app-gestion-proyecto>

@@ -1,0 +1,51 @@
+<app-template>
+  <div class="kanban-header">
+    <h2>📋 Tablero de Flujo // {{ nombreProyecto() }}</h2>
+    <p-button icon="pi pi-plus" label="Nueva Tarea" (click)="agregarTarea()" class="p-button-rounded p-button-info"></p-button>
+  </div>
+
+  <div class="kanban-board grid">
+
+    <div class="col-12 md:col-6 columna-wrapper">
+      <div class="columna-header pendientes">
+        <span>⚡ PENDIENTES DE EJECUCIÓN</span>
+      </div>
+
+      <div class="columna-cuerpo">
+        @for (tarea of getTareasPorEstado('PENDIENTE'); track tarea.id) {
+          <div class="kanban-card text-white">
+            <p class="tarea-desc">{{ tarea.descripcion }}</p>
+            <div class="card-actions">
+              <p-button icon="pi pi-pencil" severity="secondary" [rounded]="true" [text]="true" (click)="editarTarea(tarea)"></p-button>
+              <p-button icon="pi pi-check" severity="success" label="Completar" (click)="actualizarEstadoTarea(tarea, 'FINALIZADO')"></p-button>
+            </div>
+          </div>
+        } @empty {
+          <div class="empty-col-msg">No hay tareas pendientes en este sprint.</div>
+        }
+      </div>
+    </div>
+
+    <div class="col-12 md:col-6 columna-wrapper">
+      <div class="columna-header finalizadas">
+        <span>🎉 COMPLETADAS CON ÉXITO</span>
+      </div>
+
+      <div class="columna-cuerpo">
+        @for (tarea of getTareasPorEstado('FINALIZADO'); track tarea.id) {
+          <div class="kanban-card completada text-white">
+            <p class="tarea-desc text-strikethrough">{{ tarea.descripcion }}</p>
+            <div class="card-actions">
+              <p-button icon="pi pi-trash" severity="danger" label="Dar de Baja" (click)="actualizarEstadoTarea(tarea, 'BAJA')"></p-button>
+            </div>
+          </div>
+        } @empty {
+          <div class="empty-col-msg">Todavía no completaste ninguna tarea de este proyecto.</div>
+        }
+      </div>
+    </div>
+
+  </div>
+</app-template>
+
+<app-gestion-tarea [(visible)]="dialogVisible" [(tareaSeleccionada)]="tareaSeleccionada" [idProyecto]="idProyecto" (onSaved)="cargarTareas()"></app-gestion-tarea>
