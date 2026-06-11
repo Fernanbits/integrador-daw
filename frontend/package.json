@@ -13,7 +13,10 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r ts-config-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "deploy":"npm run build && npm run nginx:limpiar && npm run nginx:llenar",
+    "nginx:limpiar": "del /F /Q C:\\nginx-1.31.0\\html\\* && for /d %x in (C:\\nginx-1.31.0\\html\\*) do rmdir /S /Q \"%x\"",
+    "nginx:llenar":"xcopy /E /I dist\\frontend\\browser\\* C:\\nginx-1.31.0\\html\\"
   },
   "private": true,
   "packageManager": "npm@11.6.2",
