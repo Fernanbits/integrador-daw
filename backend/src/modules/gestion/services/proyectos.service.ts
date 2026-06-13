@@ -14,7 +14,7 @@ import { ListProyectoDTO } from '../dtos/output/list-proyecto.dto';
 import { ProyectoDTO } from '../dtos/output/proyecto.dto';
 import { ListClienteDTO } from '../dtos/output/list-cliente.dto';
 
-// ✅ IMPORTANTE: importar Tarea si existe como entidad
+//  importar Tarea 
 import { Tarea } from '../entities/tarea.entity';
 
 @Injectable()
@@ -26,7 +26,6 @@ export class ProyectosService {
     @InjectRepository(Cliente)
     private readonly clienteRepository: Repository<Cliente>,
 
-    // ✅ RECOMENDADO: inyectar repo de tareas
     @InjectRepository(Tarea)
     private readonly tareaRepository: Repository<Tarea>,
   ) {}
@@ -85,7 +84,7 @@ export class ProyectosService {
   async obtenerProyectos(): Promise<ListProyectoDTO[]> {
     const proyectos = await this.repository.find({
       relations: {
-        cliente: true, // ✅ ya correcto
+        cliente: true, 
       },
     });
 
@@ -111,7 +110,7 @@ export class ProyectosService {
       where: { id },
       relations: {
         cliente: true,
-        tareas: true, // ✅ ya correcto
+        tareas: true, 
       },
     });
 
@@ -119,7 +118,6 @@ export class ProyectosService {
       throw new BadRequestException('Proyecto no encontrado');
     }
 
-    // ✅ ARREGLADO: ya no usamos string 'tareas'
     if (proyecto.estado === EstadosProyectosEnum.FINALIZADO) {
       const tareasPendientes = await this.tareaRepository.count({
         where: {
