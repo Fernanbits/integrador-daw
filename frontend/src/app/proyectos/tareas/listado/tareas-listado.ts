@@ -62,12 +62,11 @@ export class TareasListado implements OnInit {
   }
 
   cargarTareas(): void {
-    this.http.get<ListTareaDTO[]>(`/api/v1/tareas/proyecto/${this.idProyecto}`).subscribe({
+    this.http.get<ListTareaDTO[]>(`/api/v1/proyectos/${this.idProyecto}/tareas`).subscribe({
       next: (data) => {
 
         this.tareas.set(data);
 
-        // ✅ AGRUPAR EN COLUMNAS
         const pendientes: ListTareaDTO[] = [];
         const enProgreso: ListTareaDTO[] = [];
         const finalizadas: ListTareaDTO[] = [];
@@ -102,32 +101,42 @@ export class TareasListado implements OnInit {
   getTareasPorEstado(estado: string): ListTareaDTO[] {
     return this.tareas().filter(t => t.estado === estado);
   }
-  actualizarEstadoTarea(tarea: ListTareaDTO, nuevoEstado: EstadosTareasEnum): void {
 
-    const body = {
-      descripcion: tarea.descripcion,
-      estado: nuevoEstado
-    };
+  actualizarEstadoTarea(
+  tarea: ListTareaDTO,
+  nuevoEstado: EstadosTareasEnum
+  ): void {
 
-    this.http.put(`/api/v1/tareas/${tarea.id}`, body).subscribe({
-      next: () => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Tablero actualizado',
-          detail: `Tarea movida a ${nuevoEstado}`
-        });
-        this.cargarTareas();
-      },
-      error: (err) => {
-        const errorMsg = err.error?.message || "Error al actualizar tarea";
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: errorMsg
-        });
-      }
-    });
-  }
+  const body = {
+    descripcion: tarea.descripcion,
+    estado: nuevoEstado
+  };
+
+  this.http.put(
+    `/api/v1/proyectos/${this.idProyecto}/tareas/${tarea.id}`,
+    body
+  ).subscribe({
+    next: () => {
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Tablero actualizado',
+        detail: `Tarea movida a ${nuevoEstado}`
+      });
+
+      this.cargarTareas();
+    },
+    error: (err) => {
+      const errorMsg =
+        err.error?.message || 'Error al actualizar tarea';
+
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: errorMsg
+      });
+    }
+  });
+}
 
   agregarTarea(): void {
     this.tareaSeleccionada.set(null);

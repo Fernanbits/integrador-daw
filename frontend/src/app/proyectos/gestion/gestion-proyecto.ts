@@ -85,16 +85,26 @@ export class GestionProyecto implements OnInit {
   }
 
   refrescarClientes(): void {
-    this.clientesListadoApiClient.buscarClientes(EstadosClientesEnum.ACTIVO).subscribe({
-      next: (data) => this.clientes.set(data),
-      error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Error al cargar clientes'
-        });
-      }
-    });
+    this.clientesListadoApiClient
+      .buscarClientes(EstadosClientesEnum.ACTIVO)
+      .subscribe({
+        next: (data) => {
+
+
+          this.clientes.set(data);
+
+
+        },
+        error: (err) => {
+          console.error('ERROR CLIENTES:', err);
+
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Error al cargar clientes'
+          });
+        }
+      });
   }
 
   cerrarDialog(): void {

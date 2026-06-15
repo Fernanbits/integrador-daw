@@ -12,7 +12,7 @@ export class GestionTareaApiClient {
     private readonly httpClient: HttpClient = inject(HttpClient);
 
     crearTarea(idProyecto: number | null, tarea: CreateTareaDTO): Observable<{ id: number }> {
-        return this.httpClient.post<{ id: number }>("/api/v1/proyectos/" + idProyecto + "/tareas", tarea);
+        return this.httpClient.post<{ id: number }>("api/v1/proyectos/" + idProyecto + "/tareas", tarea);
     }
 
     actualizarTarea(idProyecto: number | null, id: number, tarea: UpdateTareaDto): Observable<void> {

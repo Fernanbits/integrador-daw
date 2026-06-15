@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './modules/auth/auth.module';
 import { GestionModule } from './modules/gestion/gestion.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -9,17 +9,21 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DB_HOST,
-      port: parseInt(process.env.DB_PORT || '5432'),
-      username: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
-      synchronize: true,
-      autoLoadEntities: true,
-      logging: process.env.DB_LOGGING === 'true',
-      logger: 'advanced-console',
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: 'postgres',
+        host: configService.get<string>('DB_HOST'),
+        port: configService.get<number>('DB_PORT') || 5432,
+        username: configService.get<string>('DB_USERNAME'),
+        password: configService.get<string>('DB_PASSWORD'),
+        database: configService.get<string>('DB_NAME'),
+        synchronize: false, 
+        autoLoadEntities: true,
+        logging: configService.get<string>('DB_LOGGING') === 'true',
+        logger: 'advanced-console',
+      }),
     }),
     AuthModule,
     GestionModule,

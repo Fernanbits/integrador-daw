@@ -14,6 +14,19 @@
                 [clearable]="true"
             />
 
+
+            <hr>
+
+            <p><strong>Clientes cargados:</strong> {{ clientes().length }}</p>
+
+            @for (c of clientes(); track c.id) {
+                <div>
+                    ID: {{ c.id }} -
+                    Nombre: {{ c.nombre }} -
+                    Estado: {{ c.estado }}
+                </div>
+            }
+
             <button id="boton-gestionar-clientes" pButton label="Gestionar Clientes" (click)="gestionarClientes()"
                 severity="secondary"></button>
 

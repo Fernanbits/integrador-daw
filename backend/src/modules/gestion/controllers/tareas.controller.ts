@@ -48,4 +48,4 @@ export class TareasController {
   ): Promise<void> {
     await this.tareasService.actualizarTarea(dto, id);
   }
-}
+}  

@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class ProyectosService {
 
-  private apiUrl = '/api/proyectos';
+  private apiUrl = '/api/v1/proyectos';
 
   constructor(private http: HttpClient) {}
 
