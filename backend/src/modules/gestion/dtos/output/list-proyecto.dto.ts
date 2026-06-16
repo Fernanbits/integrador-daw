@@ -13,5 +13,5 @@ export class ListProyectoDTO {
   estado!: EstadosProyectosEnum;
 
   @ApiProperty({ type: () => ListClienteDTO })
-  cliente?: ListClienteDTO; // 👈 ahora es objeto opcional
+  cliente?: ListClienteDTO; 
 }

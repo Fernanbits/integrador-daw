@@ -12,10 +12,10 @@ export class GestionClienteApiClient {
     private readonly httpClient: HttpClient = inject(HttpClient);
 
     crearCliente(cliente: CreateClienteDTO): Observable<{ id: number }> {
-        return this.httpClient.post<{ id: number }>("api/v1/clientes", cliente);
+        return this.httpClient.post<{ id: number }>("/api/v1/clientes", cliente);
     }
 
     actualizarCliente(id: number, cliente: UpdateClienteDto): Observable<void> {
-        return this.httpClient.put<void>("api/v1/clientes/" + id, cliente);
+        return this.httpClient.put<void>("/api/v1/clientes/" + id, cliente);
     }
 }
