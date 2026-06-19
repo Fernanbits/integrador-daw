@@ -1,20 +1,18 @@
 module.exports = {
   apps: [
     {
-      name: 'gestor-de-proyectos-api', 
+      name: 'pulso-api',
+      cwd: __dirname,
       script: 'dist/main.js',
       env: {
         NODE_ENV: 'production',
         PORT: 4000,
-        DB_HOST: 'localhost',
-        DB_PORT: 5432,
-        DB_USERNAME: 'admin_controlfluido',
-        DB_PASSWORD: 'IntegradorAM',
-        DB_NAME: 'control_fluido_db', 
-        SWAGGER_HABILITADO: false,
-        JWT_SECRET: "ControlFluido_SecretKey_2026"
+        DB_LOGGING: 'false',
       },
       time: true,
+      autorestart: true,
+      max_restarts: 10,
+      restart_delay: 3000,
     },
   ],
 };

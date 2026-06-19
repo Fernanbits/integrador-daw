@@ -52,7 +52,7 @@ flowchart LR
     T --> P[(PostgreSQL en Neon)]
 ```
 
-El frontend y el backend se despliegan como proyectos independientes en Vercel. Las solicitudes `/api` del frontend se redirigen al backend, que persiste la informacion en PostgreSQL alojado en Neon. Las credenciales y los secretos de produccion se administran como variables de entorno y no forman parte del repositorio.
+El despliegue activo utiliza proyectos independientes de Vercel para frontend y backend, con PostgreSQL alojado en Neon. El repositorio tambien incluye una alternativa tradicional: nginx sirve Angular y redirige `/api` a NestJS, mientras PM2 mantiene el proceso del backend disponible. Las credenciales y los secretos de produccion se administran como variables de entorno y no forman parte del repositorio.
 
 ## Tecnologias
 
@@ -61,7 +61,7 @@ El frontend y el backend se despliegan como proyectos independientes en Vercel. 
 | Frontend | Angular 21, TypeScript, PrimeNG, Signals, Reactive Forms |
 | Backend | NestJS 11, TypeScript, JWT, class-validator |
 | Persistencia | PostgreSQL, TypeORM, Neon |
-| Entrega | Vercel, GitHub |
+| Entrega | Vercel, nginx, PM2, GitHub |
 
 ## Estructura
 
@@ -69,8 +69,9 @@ El frontend y el backend se despliegan como proyectos independientes en Vercel. 
 integradorDaw/
 ├── frontend/       Aplicacion Angular e interfaz PULSO
 ├── backend/        API REST, autenticacion y reglas de negocio
+├── deploy/         Configuracion de nginx
 ├── scripts/        Utilidades para migracion de base de datos
-├── docs/           Material para la presentacion del TPI
+├── docs/           Guia de despliegue con nginx y PM2
 └── package.json    Comandos generales del monorepo
 ```
 
@@ -104,6 +105,8 @@ Para generar ambos builds de produccion:
 ```bash
 npm run build
 ```
+
+La instalacion tradicional se detalla en la [guia de despliegue con nginx y PM2](docs/despliegue-nginx-pm2.md).
 
 ## Equipo
 
