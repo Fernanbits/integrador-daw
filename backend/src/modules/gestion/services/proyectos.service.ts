@@ -16,6 +16,7 @@ import { ClientesService } from './clientes.service';
 import { ListClienteDTO } from '../dtos/output/list-cliente.dto';
 import { ListProyectosPaginadoDTO } from '../dtos/output/list-proyectos-paginado.dto';
 import { ResumenProyectosDTO } from '../dtos/output/resumen-proyectos.dto';
+import { Cliente } from '../entities/cliente.entity';
 
 type ObtenerProyectosParams = {
   search?: string;
@@ -36,9 +37,6 @@ export class ProyectosService {
   ) {}
 
   async crearProyecto(dto: CreateProyectoDto): Promise<{ id: number }> {
-    const proyecto: Proyecto = this.repository.create(dto);
-    proyecto.estado = EstadosProyectosEnum.ACTIVO;
-
     if (dto.idCliente) {
       const clienteActivo: boolean =
         await this.clientesService.existeClienteActivoPorId(dto.idCliente);
@@ -49,6 +47,12 @@ export class ProyectosService {
         );
       }
     }
+
+    const proyecto: Proyecto = this.repository.create({
+      nombre: dto.nombre,
+      estado: EstadosProyectosEnum.ACTIVO,
+      cliente: dto.idCliente ? ({ id: dto.idCliente } as Cliente) : null,
+    });
 
     await this.repository.save(proyecto);
     return { id: proyecto.id };
@@ -74,13 +78,14 @@ export class ProyectosService {
       }
     }
 
-    const dtoClean = { ...dto };
+    proyecto.nombre = dto.nombre;
+    proyecto.estado = dto.estado;
 
-    if (dtoClean.idCliente === null) {
-      delete dtoClean.idCliente;
+    if ('idCliente' in dto) {
+      proyecto.cliente = dto.idCliente
+        ? ({ id: dto.idCliente } as Cliente)
+        : null;
     }
-
-    this.repository.merge(proyecto, dtoClean);
 
     await this.repository.save(proyecto);
   }

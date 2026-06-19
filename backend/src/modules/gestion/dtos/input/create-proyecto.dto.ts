@@ -10,5 +10,5 @@ export class CreateProyectoDto {
   @ApiProperty()
   @IsNumber()
   @IsOptional()
-  idCliente!: number;
+  idCliente?: number | null;
 }

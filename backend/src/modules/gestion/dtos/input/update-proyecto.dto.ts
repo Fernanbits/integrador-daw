@@ -17,5 +17,5 @@ export class UpdateProyectoDto {
 
   @IsOptional()
   @IsNumber()
-  idCliente?: number;
+  idCliente?: number | null;
 }

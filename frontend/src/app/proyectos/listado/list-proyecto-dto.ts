@@ -4,5 +4,5 @@ export interface ListProyectoDTO{
     id: number;
     nombre: string;
     estado: string;
-    cliente: ListClienteDTO;
+    cliente: ListClienteDTO | null;
 }

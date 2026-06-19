@@ -2,6 +2,6 @@ export interface CreateProyectoDTO {
     
     nombre: string;
 
-    idCliente: number;
+    idCliente: number | null;
 
 }

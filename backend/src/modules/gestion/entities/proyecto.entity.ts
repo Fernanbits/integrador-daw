@@ -36,7 +36,7 @@ export class Proyecto {
     nullable: true,
   })
   @JoinColumn({ name: 'id_cliente' })
-  cliente: Relation<Cliente>;
+  cliente: Relation<Cliente> | null;
 
   @OneToMany(() => Tarea, (tarea) => tarea.proyecto, {
     cascade: true,
