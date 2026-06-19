@@ -297,16 +297,24 @@ export class ProyectosService {
       nivel = 'SIN_DATOS';
       recomendacion = 'Definir la primera tarea para comenzar a medir el avance.';
     } else {
+      const aporteAvance = Math.round(avance * 0.35);
       const penalizacionPendientes = Math.round(
-        (pendientes / totalTareas) * 25,
+        (pendientes / totalTareas) * 20,
       );
       const penalizacionInactividad = Math.round(
-        (Math.min(diasSinActividad, 14) / 14) * 35,
+        (Math.min(diasSinActividad, 14) / 14) * 30,
       );
-      const penalizacionSinFoco = enProgreso === 0 && pendientes > 0 ? 10 : 0;
+      const ajusteFoco = enProgreso > 0 ? 5 : pendientes > 0 ? -5 : 0;
       puntaje = Math.max(
         0,
-        100 - penalizacionPendientes - penalizacionInactividad - penalizacionSinFoco,
+        Math.min(
+          100,
+          60 +
+            aporteAvance -
+            penalizacionPendientes -
+            penalizacionInactividad +
+            ajusteFoco,
+        ),
       );
       nivel = puntaje >= 70 ? 'ESTABLE' : puntaje >= 40 ? 'ATENCION' : 'CRITICO';
       recomendacion = this.recomendarAccion(
