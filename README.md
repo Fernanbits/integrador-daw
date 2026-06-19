@@ -11,8 +11,6 @@
 
 <p align="center">
   <a href="https://pulso-grupo-am.vercel.app"><strong>Ver aplicacion</strong></a>
-  &nbsp;·&nbsp;
-  <a href="docs/guion-presentacion.md">Guion de presentacion</a>
 </p>
 
 ## El proyecto
@@ -40,7 +38,7 @@ El sistema fue desarrollado como Trabajo Final Integrador de la Tecnicatura Univ
 | Estadisticas | Indicadores de proyectos y resumen de tareas por estado, con porcentaje de avance. |
 | Panel visual de tareas | Tablero Kanban con columnas por estado, tarjetas, busqueda y cambio rapido de situacion. |
 
-Estas cuatro funcionalidades cubren el requisito de incorporar al menos una expansion por integrante. La distribucion sugerida para la defensa se encuentra en el [guion de presentacion](docs/guion-presentacion.md).
+Estas cuatro funcionalidades cubren el requisito de incorporar al menos una expansion por integrante del equipo.
 
 ## Arquitectura
 
