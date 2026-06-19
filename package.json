@@ -2,14 +2,15 @@
   "name": "integradordaw",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"cd backend && npm run start:dev\" \"cd frontend && ng serve\""
+    "install:all": "npm install --prefix backend && npm install --prefix frontend",
+    "dev": "concurrently \"npm --prefix backend run start:dev\" \"npm --prefix frontend start\"",
+    "build": "npm --prefix backend run build && npm --prefix frontend run build"
   }, 
   "devDependencies": {
     "concurrently": "^8.2.2"
   },
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "PULSO - sistema web para la gestion de proyectos, clientes y tareas",
   "directories": {
     "doc": "docs"
   },
@@ -45,8 +46,14 @@
     "type": "git",
     "url": "git+https://github.com/Fernanbits/integrador-daw.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "angular",
+    "nestjs",
+    "postgresql",
+    "gestion-de-proyectos",
+    "tpi"
+  ],
+  "author": "Grupo AM",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
