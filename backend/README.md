@@ -23,4 +23,6 @@ npm run start:prod  # ejecucion del build
 
 `synchronize` permanece desactivado para proteger el esquema y los datos. Las credenciales reales deben administrarse mediante variables de entorno y nunca incorporarse al repositorio.
 
+Para ejecutar el build con PM2 y publicarlo detras de nginx, consultar la [guia de despliegue](../docs/despliegue-nginx-pm2.md).
+
 Para conocer el alcance funcional, la arquitectura y el equipo, consultar el [README principal](../README.md).
