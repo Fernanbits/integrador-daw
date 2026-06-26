@@ -2,6 +2,7 @@ import { inject, Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { ListProyectoDTO } from "./list-proyecto-dto";
+import { BitacoraProyectoDTO } from "./bitacora-proyecto-dto";
 
 export interface ProyectosPaginadosResponse {
     data: ListProyectoDTO[];
@@ -49,5 +50,9 @@ export class ProyectosListadoApiClient {
         }
 
         return this.httpClient.get<ProyectosPaginadosResponse>('/api/v1/proyectos', { params });
+    }
+
+    obtenerBitacora(idProyecto: number): Observable<BitacoraProyectoDTO> {
+        return this.httpClient.get<BitacoraProyectoDTO>(`/api/v1/proyectos/${idProyecto}/bitacora`);
     }
 }

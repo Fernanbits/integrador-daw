@@ -16,6 +16,7 @@ import { UpdateProyectoDto } from '../dtos/input/update-proyecto.dto';
 
 import { ListProyectosPaginadoDTO } from '../dtos/output/list-proyectos-paginado.dto';
 import { ProyectoDTO } from '../dtos/output/proyecto.dto';
+import { BitacoraProyectoDTO } from '../dtos/output/bitacora-proyecto.dto';
 
 import { ProyectosService } from '../services/proyectos.service';
 import { AuthGuard } from '../../auth/guards/auth.guard';
@@ -62,6 +63,16 @@ export class ProyectosController {
       sortBy,
       sortDirection,
     });
+  }
+
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: BitacoraProyectoDTO })
+  @UseGuards(AuthGuard)
+  @Get(':id/bitacora')
+  async obtenerBitacoraProyecto(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<BitacoraProyectoDTO> {
+    return await this.proyectosService.obtenerBitacoraProyecto(id);
   }
 
   @ApiBearerAuth()

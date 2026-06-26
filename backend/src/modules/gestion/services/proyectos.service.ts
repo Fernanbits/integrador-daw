@@ -21,6 +21,12 @@ import {
   NivelPulsoProyecto,
   PulsoProyectoDTO,
 } from '../dtos/output/pulso-proyecto.dto';
+import {
+  BitacoraProyectoDTO,
+  BitacoraProyectoItemDTO,
+  ImpactoBitacoraProyecto,
+  TipoBitacoraProyecto,
+} from '../dtos/output/bitacora-proyecto.dto';
 
 type PulsoProyectoRaw = {
   id: string;
@@ -357,6 +363,145 @@ export class ProyectosService {
     }
 
     return 'El ritmo es saludable. Mantener foco y frecuencia de actualización.';
+  }
+
+  async obtenerBitacoraProyecto(id: number): Promise<BitacoraProyectoDTO> {
+    const proyecto: Proyecto | null = await this.repository.findOne({
+      where: { id },
+      relations: { cliente: true, tareas: true },
+    });
+
+    if (!proyecto) {
+      throw new BadRequestException('Proyecto no encontrado');
+    }
+
+    const pulso =
+      (await this.obtenerPulsos([proyecto])).get(proyecto.id) ??
+      this.calcularPulso(proyecto, undefined);
+    const eventos: BitacoraProyectoItemDTO[] = [];
+
+    eventos.push(
+      this.crearEventoBitacora(
+        'proyecto-creado',
+        'PROYECTO',
+        'Proyecto creado',
+        `Se inició "${proyecto.nombre}" en estado ${proyecto.estado}.`,
+        proyecto.fechaCreacion,
+        'MEDIO',
+      ),
+    );
+
+    eventos.push(
+      this.crearEventoBitacora(
+        'cliente-actual',
+        'CLIENTE',
+        proyecto.cliente ? 'Cliente asociado' : 'Proyecto interno',
+        proyecto.cliente
+          ? `Actualmente está asociado a ${proyecto.cliente.nombre}.`
+          : 'No depende de un cliente externo.',
+        proyecto.fechaCreacion,
+        proyecto.cliente ? 'BAJO' : 'NEUTRO',
+      ),
+    );
+
+    if (this.fechaCambio(proyecto.fechaCreacion, proyecto.fechaActualizacion)) {
+      eventos.push(
+        this.crearEventoBitacora(
+          'proyecto-actualizado',
+          'PROYECTO',
+          'Proyecto actualizado',
+          `La ficha del proyecto quedó en estado ${proyecto.estado}.`,
+          proyecto.fechaActualizacion,
+          proyecto.estado === EstadosProyectosEnum.ACTIVO ? 'BAJO' : 'MEDIO',
+        ),
+      );
+    }
+
+    for (const tarea of [...(proyecto.tareas ?? [])].sort((a, b) => a.id - b.id)) {
+      eventos.push(
+        this.crearEventoBitacora(
+          `tarea-${tarea.id}-creada`,
+          'TAREA',
+          'Tarea incorporada',
+          tarea.descripcion,
+          tarea.fechaCreacion,
+          'BAJO',
+        ),
+      );
+
+      if (this.fechaCambio(tarea.fechaCreacion, tarea.fechaActualizacion)) {
+        eventos.push(
+          this.crearEventoBitacora(
+            `tarea-${tarea.id}-actualizada`,
+            'TAREA',
+            'Tarea actualizada',
+            `${tarea.descripcion} quedó en estado ${tarea.estado}.`,
+            tarea.fechaActualizacion,
+            tarea.estado === 'FINALIZADA' ? 'MEDIO' : 'BAJO',
+          ),
+        );
+      }
+    }
+
+    eventos.push(
+      this.crearEventoBitacora(
+        'pulso-actual',
+        'PULSO',
+        `Pulso actual: ${this.etiquetaPulso(pulso.nivel)}`,
+        `${pulso.puntaje}/100 con ${pulso.avance}% de avance. ${pulso.recomendacion}`,
+        this.obtenerUltimaActividad(proyecto),
+        pulso.nivel === 'CRITICO'
+          ? 'ALTO'
+          : pulso.nivel === 'ATENCION'
+            ? 'MEDIO'
+            : 'BAJO',
+      ),
+    );
+
+    return {
+      proyectoId: proyecto.id,
+      proyecto: proyecto.nombre,
+      eventos: eventos.sort(
+        (a, b) => b.fecha.getTime() - a.fecha.getTime(),
+      ),
+    };
+  }
+
+  private crearEventoBitacora(
+    id: string,
+    tipo: TipoBitacoraProyecto,
+    titulo: string,
+    detalle: string,
+    fecha: Date,
+    impacto: ImpactoBitacoraProyecto,
+  ): BitacoraProyectoItemDTO {
+    return { id, tipo, titulo, detalle, fecha, impacto };
+  }
+
+  private fechaCambio(creacion: Date, actualizacion: Date): boolean {
+    return actualizacion.getTime() - creacion.getTime() > 1000;
+  }
+
+  private obtenerUltimaActividad(proyecto: Proyecto): Date {
+    const fechas = [
+      proyecto.fechaActualizacion,
+      ...(proyecto.tareas ?? []).map((tarea) => tarea.fechaActualizacion),
+    ];
+
+    return new Date(Math.max(...fechas.map((fecha) => fecha.getTime())));
+  }
+
+  private etiquetaPulso(nivel: NivelPulsoProyecto): string {
+    const etiquetas: Record<NivelPulsoProyecto, string> = {
+      ESTABLE: 'estable',
+      ATENCION: 'atencion',
+      CRITICO: 'critico',
+      SIN_DATOS: 'sin datos',
+      CERRADO: 'cerrado',
+      PAUSADO: 'pausado',
+    };
+
+    return etiquetas[nivel];
   }
 
   async obtenerProyecto(id: number): Promise<ProyectoDTO> {

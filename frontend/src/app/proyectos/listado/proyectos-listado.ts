@@ -12,6 +12,7 @@ import { CommonModule } from "@angular/common";
 import { finalize } from "rxjs";
 import { Router } from "@angular/router";
 import { DialogModule } from "primeng/dialog";
+import { BitacoraProyectoDTO, TipoBitacoraProyecto } from "./bitacora-proyecto-dto";
 
 @Component({
   selector: "app-proyectos-listado",
@@ -30,6 +31,11 @@ export class ProyectosListado {
   proyectoSeleccionado = signal<ListProyectoDTO | null>(null);
   proyectoPulso = signal<ListProyectoDTO | null>(null);
   pulsoVisible = signal(false);
+  proyectoBitacora = signal<ListProyectoDTO | null>(null);
+  bitacora = signal<BitacoraProyectoDTO | null>(null);
+  bitacoraVisible = signal(false);
+  bitacoraLoading = signal(false);
+  bitacoraError = signal<string | null>(null);
 
   searchQuery = signal<string>('');
   estadoFiltro = signal<string>('');
@@ -192,6 +198,29 @@ export class ProyectosListado {
     this.pulsoVisible.set(true);
   }
 
+  verBitacora(proyecto: ListProyectoDTO): void {
+    this.proyectoBitacora.set(proyecto);
+    this.bitacora.set(null);
+    this.bitacoraError.set(null);
+    this.bitacoraVisible.set(true);
+    this.bitacoraLoading.set(true);
+
+    this.proyectosListadoApiClient.obtenerBitacora(proyecto.id).pipe(
+      finalize(() => this.bitacoraLoading.set(false))
+    ).subscribe({
+      next: (bitacora) => this.bitacora.set(bitacora),
+      error: (error) => {
+        const detail = error?.error?.message ?? 'No se pudo cargar la bitácora';
+        this.bitacoraError.set(detail);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail
+        });
+      }
+    });
+  }
+
   etiquetaPulso(nivel: string): string {
     const etiquetas: Record<string, string> = {
       ESTABLE: 'Estable',
@@ -232,6 +261,28 @@ export class ProyectosListado {
     link.download = 'proyectos.csv';
     link.click();
     URL.revokeObjectURL(url);
+  }
+
+  iconoBitacora(tipo: TipoBitacoraProyecto): string {
+    const iconos: Record<TipoBitacoraProyecto, string> = {
+      PROYECTO: 'pi pi-folder',
+      CLIENTE: 'pi pi-briefcase',
+      TAREA: 'pi pi-check-square',
+      PULSO: 'pi pi-chart-line',
+    };
+
+    return iconos[tipo];
+  }
+
+  etiquetaTipoBitacora(tipo: TipoBitacoraProyecto): string {
+    const etiquetas: Record<TipoBitacoraProyecto, string> = {
+      PROYECTO: 'Proyecto',
+      CLIENTE: 'Cliente',
+      TAREA: 'Tarea',
+      PULSO: 'Pulso',
+    };
+
+    return etiquetas[tipo];
   }
 
   private valorCsv(valor: unknown): string {

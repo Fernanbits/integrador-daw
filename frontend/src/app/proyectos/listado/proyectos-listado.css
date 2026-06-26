@@ -400,6 +400,130 @@ h1 {
 .pulso-detalle[data-nivel="CRITICO"] .avance-barra span { background: var(--danger); }
 .pulso-detalle[data-nivel="CERRADO"] .avance-barra span { background: var(--cyan); }
 
+.bitacora-panel {
+    padding-top: 0.25rem;
+}
+
+.bitacora-intro {
+    align-items: center;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 1rem;
+}
+
+.bitacora-intro span,
+.bitacora-meta span {
+    color: var(--muted);
+    font-size: 0.64rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.bitacora-intro strong {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    text-transform: uppercase;
+}
+
+.bitacora-loading {
+    align-items: center;
+    color: var(--muted);
+    display: flex;
+    gap: 0.6rem;
+    justify-content: center;
+    min-height: 10rem;
+}
+
+.bitacora-lista {
+    list-style: none;
+    margin: 1rem 0 0;
+    max-height: min(28rem, 62vh);
+    overflow: auto;
+    padding: 0;
+}
+
+.bitacora-lista li {
+    display: grid;
+    gap: 0.8rem;
+    grid-template-columns: 2.25rem 1fr;
+    position: relative;
+}
+
+.bitacora-lista li + li {
+    margin-top: 0.85rem;
+}
+
+.bitacora-lista li::before {
+    background: var(--line);
+    content: "";
+    height: calc(100% + 0.85rem);
+    left: 1.1rem;
+    position: absolute;
+    top: 2.25rem;
+    width: 1px;
+}
+
+.bitacora-lista li:last-child::before {
+    display: none;
+}
+
+.bitacora-icono {
+    align-items: center;
+    background: var(--table-heading);
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    color: var(--muted);
+    display: inline-flex;
+    height: 2.25rem;
+    justify-content: center;
+    position: relative;
+    width: 2.25rem;
+    z-index: 1;
+}
+
+.bitacora-lista li[data-impacto="ALTO"] .bitacora-icono {
+    color: var(--danger);
+}
+
+.bitacora-lista li[data-impacto="MEDIO"] .bitacora-icono {
+    color: var(--acid);
+}
+
+.bitacora-lista li[data-impacto="BAJO"] .bitacora-icono {
+    color: var(--success);
+}
+
+.bitacora-evento {
+    background: var(--table-heading);
+    border: 1px solid var(--line);
+    padding: 0.9rem 1rem;
+}
+
+.bitacora-meta {
+    align-items: center;
+    display: flex;
+    gap: 0.75rem;
+    justify-content: space-between;
+    margin-bottom: 0.35rem;
+}
+
+.bitacora-meta time {
+    color: var(--muted);
+    font-size: 0.68rem;
+}
+
+.bitacora-evento strong {
+    display: block;
+    font-size: 0.95rem;
+}
+
+.bitacora-evento p {
+    color: var(--muted);
+    line-height: 1.45;
+    margin: 0.35rem 0 0;
+}
+
 .empty-state {
     padding: 4rem 1rem !important;
     text-align: center;
@@ -494,6 +618,10 @@ h1 {
     padding: 0.8rem 1rem;
 }
 
+.error-panel.compact {
+    margin-top: 1rem;
+}
+
 @media (max-width: 900px) {
     .metricas-panel {
         grid-template-columns: repeat(2, 1fr);
@@ -552,5 +680,12 @@ h1 {
 
     .pulso-datos div:nth-child(-n + 2) {
         border-bottom: 1px solid var(--line);
+    }
+
+    .bitacora-intro,
+    .bitacora-meta {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.25rem;
     }
 }

@@ -162,6 +162,14 @@
                             (click)="gestionarTareas(proyecto)">
                         </p-button>
                         <p-button
+                            icon="pi pi-history"
+                            severity="secondary"
+                            [text]="true"
+                            pTooltip="Ver bitácora"
+                            [attr.aria-label]="'Ver bitácora de ' + proyecto.nombre"
+                            (click)="verBitacora(proyecto)">
+                        </p-button>
+                        <p-button
                             icon="pi pi-pencil"
                             severity="secondary"
                             [text]="true"
@@ -307,4 +315,51 @@
             </div>
         </div>
     }
+</p-dialog>
+
+<p-dialog
+    [header]="'Bitácora / ' + (proyectoBitacora()?.nombre ?? '')"
+    [modal]="true"
+    closeAriaLabel="Cerrar diálogo"
+    [visible]="bitacoraVisible()"
+    (visibleChange)="bitacoraVisible.set($event)"
+    [style]="{ width: 'min(42rem, calc(100vw - 2rem))' }">
+    <div class="bitacora-panel">
+        <div class="bitacora-intro">
+            <span>TRAZABILIDAD DEL PROYECTO</span>
+            <strong>{{ bitacora()?.eventos?.length ?? 0 }} eventos detectados</strong>
+        </div>
+
+        @if (bitacoraLoading()) {
+            <div class="bitacora-loading" role="status">
+                <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+                Sincronizando actividad...
+            </div>
+        } @else if (bitacoraError()) {
+            <div class="error-panel compact" role="alert">
+                <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+                {{ bitacoraError() }}
+            </div>
+        } @else if (bitacora(); as registro) {
+            <ol class="bitacora-lista" aria-label="Línea de tiempo del proyecto">
+                @for (evento of registro.eventos; track evento.id) {
+                    <li [attr.data-impacto]="evento.impacto">
+                        <span class="bitacora-icono" aria-hidden="true">
+                            <i [class]="iconoBitacora(evento.tipo)"></i>
+                        </span>
+                        <div class="bitacora-evento">
+                            <div class="bitacora-meta">
+                                <span>{{ etiquetaTipoBitacora(evento.tipo) }}</span>
+                                <time [attr.datetime]="evento.fecha">
+                                    {{ evento.fecha | date:'dd/MM/yyyy HH:mm' }}
+                                </time>
+                            </div>
+                            <strong>{{ evento.titulo }}</strong>
+                            <p>{{ evento.detalle }}</p>
+                        </div>
+                    </li>
+                }
+            </ol>
+        }
+    </div>
 </p-dialog>
