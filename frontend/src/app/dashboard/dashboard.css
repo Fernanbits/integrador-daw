@@ -1,0 +1,247 @@
+.dashboard-heading {
+  align-items: end;
+  display: flex;
+  gap: 2rem;
+  justify-content: space-between;
+  margin: 0 auto 2rem;
+  max-width: 92rem;
+}
+
+.dashboard-heading h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 7vw, 5.5rem);
+  line-height: 0.9;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.dashboard-heading p {
+  color: var(--muted);
+  margin: 0.65rem 0 0;
+}
+
+.section-index {
+  color: var(--coral);
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  text-transform: uppercase;
+}
+
+.heading-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  justify-content: flex-end;
+}
+
+.dashboard-loading {
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  display: flex;
+  gap: 0.8rem;
+  justify-content: center;
+  margin: 0 auto;
+  max-width: 92rem;
+  min-height: 16rem;
+  text-transform: uppercase;
+}
+
+.metric-grid,
+.dashboard-grid {
+  display: grid;
+  gap: 1rem;
+  margin: 0 auto 1rem;
+  max-width: 92rem;
+}
+
+.metric-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.dashboard-grid {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+}
+
+.dashboard-grid.lower {
+  align-items: start;
+}
+
+.metric-card,
+.panel {
+  border: 1px solid var(--line);
+  min-width: 0;
+}
+
+.metric-card {
+  padding: 1rem;
+  position: relative;
+}
+
+.metric-card::before,
+.panel header::before {
+  background: var(--cyan);
+  content: '';
+  height: 0.3rem;
+  left: 1rem;
+  position: absolute;
+  top: -0.15rem;
+  width: 1.25rem;
+}
+
+.metric-card.warning::before {
+  background: #ef4444;
+}
+
+.metric-card.priority::before {
+  background: #f59e0b;
+}
+
+.metric-card span,
+.panel header span {
+  color: var(--muted);
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.metric-card strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 2.3rem;
+  margin-top: 0.3rem;
+}
+
+.metric-card small {
+  color: var(--muted);
+}
+
+.panel header {
+  border-bottom: 1px solid var(--line);
+  min-height: 4rem;
+  padding: 0.9rem 1rem;
+  position: relative;
+}
+
+.panel header strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  margin-top: 0.2rem;
+  text-transform: uppercase;
+}
+
+.pulse-bars,
+.task-state-grid {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.pulse-bars {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.task-state-grid {
+  grid-template-columns: 1fr;
+}
+
+.pulse-bars div,
+.task-state-grid div {
+  background: var(--ink-raised);
+  border: 1px solid var(--line);
+  padding: 0.85rem;
+}
+
+.pulse-bars span,
+.task-state-grid span {
+  color: var(--muted);
+  display: block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+
+.pulse-bars strong,
+.task-state-grid strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  margin-top: 0.2rem;
+}
+
+.risk-list,
+.due-list {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.85rem;
+}
+
+.risk-item,
+.due-item {
+  align-items: center;
+  background: var(--ink-raised);
+  border: 1px solid var(--line);
+  display: grid;
+  gap: 0.8rem;
+  min-height: 4rem;
+  padding: 0.75rem;
+}
+
+.risk-item {
+  grid-template-columns: 1fr auto;
+}
+
+.due-item {
+  grid-template-columns: 5.5rem 1fr;
+}
+
+.risk-item[data-nivel="CRITICO"],
+.due-item[data-prioridad="ALTA"] {
+  border-color: rgba(239, 68, 68, 0.65);
+}
+
+.risk-item strong,
+.due-item strong {
+  display: block;
+  line-height: 1.25;
+}
+
+.risk-item span,
+.due-item span,
+.due-item time {
+  color: var(--muted);
+  display: block;
+  font-size: 0.72rem;
+  margin-top: 0.25rem;
+  text-transform: uppercase;
+}
+
+.risk-item b {
+  color: var(--coral);
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+}
+
+.empty-panel {
+  color: var(--muted);
+  margin: 0;
+  padding: 1rem;
+}
+
+@media (max-width: 900px) {
+  .dashboard-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .heading-actions {
+    justify-content: stretch;
+  }
+  .metric-grid,
+  .dashboard-grid,
+  .pulse-bars {
+    grid-template-columns: 1fr;
+  }
+}

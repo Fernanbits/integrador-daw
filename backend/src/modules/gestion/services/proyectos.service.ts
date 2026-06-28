@@ -27,6 +27,12 @@ import {
   ImpactoBitacoraProyecto,
   TipoBitacoraProyecto,
 } from '../dtos/output/bitacora-proyecto.dto';
+import { Tarea } from '../entities/tarea.entity';
+import {
+  DashboardDTO,
+  DashboardProyectoRiesgoDTO,
+  DashboardTareaVencimientoDTO,
+} from '../dtos/output/dashboard.dto';
 
 type PulsoProyectoRaw = {
   id: string;
@@ -51,6 +57,8 @@ export class ProyectosService {
   constructor(
     @InjectRepository(Proyecto)
     private readonly repository: Repository<Proyecto>,
+    @InjectRepository(Tarea)
+    private readonly tareasRepository: Repository<Tarea>,
     @Inject(forwardRef(() => ClientesService))
     private readonly clientesService: ClientesService,
   ) {}
@@ -264,6 +272,138 @@ export class ProyectosService {
         ];
       }),
     );
+  }
+
+  async obtenerDashboard(): Promise<DashboardDTO> {
+    const proyectos = await this.repository.find({
+      relations: { cliente: true },
+      order: { id: 'ASC' },
+    });
+    const pulsos = await this.obtenerPulsos(proyectos);
+
+    const tareasRaw = await this.tareasRepository
+      .createQueryBuilder('tarea')
+      .select('COUNT(*) FILTER (WHERE tarea.estado <> :baja)', 'total')
+      .addSelect(
+        'COUNT(*) FILTER (WHERE tarea.estado = :pendiente)',
+        'pendientes',
+      )
+      .addSelect(
+        'COUNT(*) FILTER (WHERE tarea.estado = :enProgreso)',
+        'enProgreso',
+      )
+      .addSelect(
+        'COUNT(*) FILTER (WHERE tarea.estado = :finalizada)',
+        'finalizadas',
+      )
+      .addSelect(
+        `COUNT(*) FILTER (
+          WHERE tarea.estado NOT IN (:baja, :finalizada)
+          AND tarea.fechaVencimiento < CURRENT_DATE
+        )`,
+        'vencidas',
+      )
+      .addSelect(
+        `COUNT(*) FILTER (
+          WHERE tarea.estado NOT IN (:baja, :finalizada)
+          AND tarea.fechaVencimiento BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '7 days'
+        )`,
+        'proximasAVencer',
+      )
+      .addSelect(
+        `COUNT(*) FILTER (
+          WHERE tarea.estado <> :baja
+          AND tarea.prioridad = 'ALTA'
+        )`,
+        'altaPrioridad',
+      )
+      .setParameters({
+        baja: 'BAJA',
+        pendiente: 'PENDIENTE',
+        enProgreso: 'EN_PROGRESO',
+        finalizada: 'FINALIZADA',
+      })
+      .getRawOne<Record<string, string>>();
+
+    const proximos = await this.tareasRepository
+      .createQueryBuilder('tarea')
+      .innerJoinAndSelect('tarea.proyecto', 'proyecto')
+      .where('tarea.estado NOT IN (:...estados)', {
+        estados: ['BAJA', 'FINALIZADA'],
+      })
+      .andWhere('tarea.fechaVencimiento IS NOT NULL')
+      .orderBy('tarea.fechaVencimiento', 'ASC')
+      .addOrderBy('tarea.prioridad', 'ASC')
+      .take(8)
+      .getMany();
+
+    const pulso = {
+      estables: 0,
+      atencion: 0,
+      criticos: 0,
+      sinDatos: 0,
+      cerrados: 0,
+      pausados: 0,
+    };
+    const proyectosEnRiesgo: DashboardProyectoRiesgoDTO[] = [];
+
+    for (const proyecto of proyectos) {
+      const pulsoProyecto =
+        pulsos.get(proyecto.id) ?? this.calcularPulso(proyecto, undefined);
+
+      if (pulsoProyecto.nivel === 'ESTABLE') pulso.estables++;
+      if (pulsoProyecto.nivel === 'ATENCION') pulso.atencion++;
+      if (pulsoProyecto.nivel === 'CRITICO') pulso.criticos++;
+      if (pulsoProyecto.nivel === 'SIN_DATOS') pulso.sinDatos++;
+      if (pulsoProyecto.nivel === 'CERRADO') pulso.cerrados++;
+      if (pulsoProyecto.nivel === 'PAUSADO') pulso.pausados++;
+
+      if (['CRITICO', 'ATENCION'].includes(pulsoProyecto.nivel)) {
+        proyectosEnRiesgo.push({
+          id: proyecto.id,
+          nombre: proyecto.nombre,
+          estado: proyecto.estado,
+          nivel: pulsoProyecto.nivel,
+          puntaje: pulsoProyecto.puntaje,
+          avance: pulsoProyecto.avance,
+          recomendacion: pulsoProyecto.recomendacion,
+        });
+      }
+    }
+
+    proyectosEnRiesgo.sort((a, b) => a.puntaje - b.puntaje);
+
+    return {
+      totalProyectos: proyectos.length,
+      activos: proyectos.filter((p) => p.estado === EstadosProyectosEnum.ACTIVO)
+        .length,
+      finalizados: proyectos.filter(
+        (p) => p.estado === EstadosProyectosEnum.FINALIZADO,
+      ).length,
+      bajas: proyectos.filter((p) => p.estado === EstadosProyectosEnum.BAJA)
+        .length,
+      internos: proyectos.filter((p) => !p.cliente).length,
+      tareas: {
+        total: Number(tareasRaw?.total ?? 0),
+        pendientes: Number(tareasRaw?.pendientes ?? 0),
+        enProgreso: Number(tareasRaw?.enProgreso ?? 0),
+        finalizadas: Number(tareasRaw?.finalizadas ?? 0),
+        vencidas: Number(tareasRaw?.vencidas ?? 0),
+        proximasAVencer: Number(tareasRaw?.proximasAVencer ?? 0),
+        altaPrioridad: Number(tareasRaw?.altaPrioridad ?? 0),
+      },
+      pulso,
+      proyectosEnRiesgo: proyectosEnRiesgo.slice(0, 8),
+      proximosVencimientos: proximos.map((tarea) => ({
+        id: tarea.id,
+        descripcion: tarea.descripcion,
+        estado: tarea.estado,
+        prioridad: tarea.prioridad,
+        fechaVencimiento: tarea.fechaVencimiento!,
+        proyectoId: tarea.proyecto.id,
+        proyecto: tarea.proyecto.nombre,
+      })) as DashboardTareaVencimientoDTO[],
+    };
   }
 
   private calcularPulso(

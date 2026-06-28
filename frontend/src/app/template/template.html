@@ -6,6 +6,20 @@
     </a>
 
     <div class="header-actions">
+        <p-button
+            icon="pi pi-chart-bar"
+            [text]="true"
+            pTooltip="Dashboard"
+            aria-label="Ir al dashboard"
+            routerLink="/dashboard">
+        </p-button>
+        <p-button
+            icon="pi pi-folder"
+            [text]="true"
+            pTooltip="Proyectos"
+            aria-label="Ir a proyectos"
+            routerLink="/proyectos">
+        </p-button>
         <span class="system-status"><i aria-hidden="true"></i>Sesión activa</span>
         <p-button
             id="boton-tema"

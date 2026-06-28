@@ -35,6 +35,12 @@
       <div class="kanban-metrica avance">
         <span>Avance</span><strong>{{ porcentajeFinalizadas() }}%</strong>
       </div>
+      <div class="kanban-metrica riesgo">
+        <span>Vencidas</span><strong>{{ totalVencidas() }}</strong>
+      </div>
+      <div class="kanban-metrica prioridad">
+        <span>Prioridad alta</span><strong>{{ totalAltaPrioridad() }}</strong>
+      </div>
     </section>
 
     <div class="kanban-toolbar">
@@ -92,6 +98,15 @@
               <article class="task-card">
                 <span class="task-id">T-{{ tarea.id }}</span>
                 <p>{{ tarea.descripcion }}</p>
+                <div class="task-meta">
+                  <span class="priority-chip" [attr.data-prioridad]="tarea.prioridad">
+                    {{ etiquetaPrioridad(tarea.prioridad) }}
+                  </span>
+                  <span class="due-chip" [class.vencida]="estaVencida(tarea)">
+                    <i class="pi pi-calendar" aria-hidden="true"></i>
+                    {{ fechaCorta(tarea.fechaVencimiento) }}
+                  </span>
+                </div>
                 <div class="card-actions">
                   <p-button
                     icon="pi pi-pencil"
@@ -130,6 +145,15 @@
               <article class="task-card">
                 <span class="task-id">T-{{ tarea.id }}</span>
                 <p>{{ tarea.descripcion }}</p>
+                <div class="task-meta">
+                  <span class="priority-chip" [attr.data-prioridad]="tarea.prioridad">
+                    {{ etiquetaPrioridad(tarea.prioridad) }}
+                  </span>
+                  <span class="due-chip" [class.vencida]="estaVencida(tarea)">
+                    <i class="pi pi-calendar" aria-hidden="true"></i>
+                    {{ fechaCorta(tarea.fechaVencimiento) }}
+                  </span>
+                </div>
                 <div class="card-actions">
                   <p-button
                     icon="pi pi-pencil"
@@ -178,6 +202,15 @@
               <article class="task-card completada">
                 <span class="task-id">T-{{ tarea.id }}</span>
                 <p>{{ tarea.descripcion }}</p>
+                <div class="task-meta">
+                  <span class="priority-chip" [attr.data-prioridad]="tarea.prioridad">
+                    {{ etiquetaPrioridad(tarea.prioridad) }}
+                  </span>
+                  <span class="due-chip">
+                    <i class="pi pi-calendar" aria-hidden="true"></i>
+                    {{ fechaCorta(tarea.fechaVencimiento) }}
+                  </span>
+                </div>
                 <div class="card-actions">
                   <p-button
                     icon="pi pi-pencil"

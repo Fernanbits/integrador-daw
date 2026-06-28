@@ -11,6 +11,12 @@
                 <small id="tarea-descripcion-error" class="form-error">Ingresá la descripción de la tarea.</small>
             }
 
+            <label for="tarea-prioridad">Prioridad</label>
+            <p-select inputId="tarea-prioridad" formControlName="prioridad" [options]="prioridades()" placeholder="Prioridad" appendTo="body" />
+
+            <label for="tarea-vencimiento">Fecha de vencimiento</label>
+            <input pInputText type="date" id="tarea-vencimiento" formControlName="fechaVencimiento" />
+
             @if (tareaSeleccionada()) {
                 <label for="tarea-estado">Estado</label>
                 <p-select inputId="tarea-estado" formControlName="estado" [options]="estados()" placeholder="Estado" appendTo="body" />

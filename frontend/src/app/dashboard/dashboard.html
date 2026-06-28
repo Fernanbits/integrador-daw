@@ -1,0 +1,115 @@
+<app-template>
+  <section class="dashboard-heading">
+    <div>
+      <p class="section-index">01 / CONTROL GENERAL</p>
+      <h1>Dashboard</h1>
+      <p>Portfolio, vencimientos y prioridades</p>
+    </div>
+
+    <div class="heading-actions">
+      <p-button icon="pi pi-refresh" label="Actualizar" severity="secondary" (click)="cargarDashboard()"></p-button>
+      <p-button icon="pi pi-file-pdf" label="Reporte PDF" (click)="generarReportePdf()" [disabled]="!dashboard()"></p-button>
+    </div>
+  </section>
+
+  @if (loading()) {
+    <section class="dashboard-loading" aria-live="polite">
+      <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+      <span>Sincronizando dashboard</span>
+    </section>
+  } @else if (dashboard(); as data) {
+    <section class="metric-grid" aria-label="Resumen general">
+      <article class="metric-card">
+        <span>Proyectos</span>
+        <strong>{{ data.totalProyectos }}</strong>
+        <small>{{ data.activos }} activos</small>
+      </article>
+      <article class="metric-card">
+        <span>Tareas</span>
+        <strong>{{ data.tareas.total }}</strong>
+        <small>{{ data.tareas.enProgreso }} en progreso</small>
+      </article>
+      <article class="metric-card warning">
+        <span>Vencidas</span>
+        <strong>{{ data.tareas.vencidas }}</strong>
+        <small>{{ data.tareas.proximasAVencer }} próximas</small>
+      </article>
+      <article class="metric-card priority">
+        <span>Prioridad alta</span>
+        <strong>{{ data.tareas.altaPrioridad }}</strong>
+        <small>{{ avanceGlobal() }}% avance global</small>
+      </article>
+    </section>
+
+    <section class="dashboard-grid">
+      <article class="panel">
+        <header>
+          <span>Distribución de pulso</span>
+          <strong>{{ data.pulso.criticos + data.pulso.atencion }} en seguimiento</strong>
+        </header>
+        <div class="pulse-bars">
+          <div><span>Estables</span><strong>{{ data.pulso.estables }}</strong></div>
+          <div><span>Atención</span><strong>{{ data.pulso.atencion }}</strong></div>
+          <div><span>Críticos</span><strong>{{ data.pulso.criticos }}</strong></div>
+          <div><span>Sin datos</span><strong>{{ data.pulso.sinDatos }}</strong></div>
+          <div><span>Cerrados</span><strong>{{ data.pulso.cerrados }}</strong></div>
+          <div><span>Pausados</span><strong>{{ data.pulso.pausados }}</strong></div>
+        </div>
+      </article>
+
+      <article class="panel">
+        <header>
+          <span>Estado de tareas</span>
+          <strong>{{ data.tareas.finalizadas }} finalizadas</strong>
+        </header>
+        <div class="task-state-grid">
+          <div><span>Pendientes</span><strong>{{ data.tareas.pendientes }}</strong></div>
+          <div><span>En progreso</span><strong>{{ data.tareas.enProgreso }}</strong></div>
+          <div><span>Finalizadas</span><strong>{{ data.tareas.finalizadas }}</strong></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="dashboard-grid lower">
+      <article class="panel list-panel">
+        <header>
+          <span>Proyectos en riesgo</span>
+          <strong>{{ data.proyectosEnRiesgo.length }}</strong>
+        </header>
+        <div class="risk-list">
+          @for (proyecto of data.proyectosEnRiesgo; track proyecto.id) {
+            <div class="risk-item" [attr.data-nivel]="proyecto.nivel">
+              <div>
+                <strong>{{ proyecto.nombre }}</strong>
+                <span>{{ etiquetaPulso(proyecto.nivel) }} · {{ proyecto.avance }}%</span>
+              </div>
+              <b>{{ proyecto.puntaje }}</b>
+            </div>
+          } @empty {
+            <p class="empty-panel">Sin proyectos en riesgo.</p>
+          }
+        </div>
+      </article>
+
+      <article class="panel list-panel">
+        <header>
+          <span>Próximos vencimientos</span>
+          <strong>{{ data.proximosVencimientos.length }}</strong>
+        </header>
+        <div class="due-list">
+          @for (tarea of data.proximosVencimientos; track tarea.id) {
+            <div class="due-item" [attr.data-prioridad]="tarea.prioridad">
+              <time>{{ fechaCorta(tarea.fechaVencimiento) }}</time>
+              <div>
+                <strong>{{ tarea.descripcion }}</strong>
+                <span>{{ tarea.proyecto }} · {{ tarea.prioridad }}</span>
+              </div>
+            </div>
+          } @empty {
+            <p class="empty-panel">Sin vencimientos pendientes.</p>
+          }
+        </div>
+      </article>
+    </section>
+  }
+</app-template>

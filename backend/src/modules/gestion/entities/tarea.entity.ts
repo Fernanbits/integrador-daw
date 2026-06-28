@@ -11,6 +11,7 @@ import {
 
 import { Proyecto } from './proyecto.entity';
 import { EstadosTareasEnum } from '../enums/estados-tareas.enum';
+import { PrioridadesTareasEnum } from '../enums/prioridades-tareas.enum';
 
 @Entity('tareas')
 export class Tarea {
@@ -26,6 +27,16 @@ export class Tarea {
     default: EstadosTareasEnum.PENDIENTE,
   })
   estado: EstadosTareasEnum;
+
+  @Column({
+    type: 'enum',
+    enum: PrioridadesTareasEnum,
+    default: PrioridadesTareasEnum.MEDIA,
+  })
+  prioridad: PrioridadesTareasEnum;
+
+  @Column({ type: 'date', name: 'fecha_vencimiento', nullable: true })
+  fechaVencimiento: Date | null;
 
   @ManyToOne(() => Proyecto, (proyecto) => proyecto.tareas, {
     onDelete: 'CASCADE',

@@ -13,6 +13,17 @@ npm run start:dev
 
 La API se inicia en `http://localhost:3000/api/v1`.
 
+## Dashboard y planificacion
+
+La API expone `GET /api/v1/proyectos/dashboard/resumen` para alimentar el dashboard general. El resumen incluye conteos de proyectos, distribucion de pulso, estado global de tareas, tareas vencidas, tareas proximas a vencer, tareas de prioridad alta y proyectos en riesgo.
+
+Las tareas admiten dos campos de planificacion:
+
+- `prioridad`: `ALTA`, `MEDIA` o `BAJA`;
+- `fechaVencimiento`: fecha opcional en formato `YYYY-MM-DD`.
+
+En bases existentes, aplicar `scripts/migrate-task-planning-fields.ps1` antes de desplegar el backend con estas columnas.
+
 ## Bitacora de proyectos
 
 La extension agrega el endpoint autenticado `GET /api/v1/proyectos/:id/bitacora`. Devuelve un `BitacoraProyectoDTO` con el identificador y nombre del proyecto, mas una lista de eventos ordenados desde la actividad mas reciente.

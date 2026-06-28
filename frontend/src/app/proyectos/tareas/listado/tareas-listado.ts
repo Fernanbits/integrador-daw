@@ -11,6 +11,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { GestionTarea } from '../gestion/gestion-tarea';
 import { EstadosTareasEnum } from '../estados-tareas-enum';
 import { FormsModule } from '@angular/forms';
+import { PrioridadesTareasEnum } from '../prioridades-tareas-enum';
 
 @Component({
   selector: 'app-tareas-listado',
@@ -55,6 +56,10 @@ export class TareasListado implements OnInit {
   totalPendientes = computed(() => this.contarTareas(EstadosTareasEnum.PENDIENTE));
   totalEnProgreso = computed(() => this.contarTareas(EstadosTareasEnum.EN_PROGRESO));
   totalFinalizadas = computed(() => this.contarTareas(EstadosTareasEnum.FINALIZADA));
+  totalVencidas = computed(() => this.tareas().filter((tarea) => this.estaVencida(tarea)).length);
+  totalAltaPrioridad = computed(() =>
+    this.tareas().filter((tarea) => tarea.prioridad === PrioridadesTareasEnum.ALTA).length,
+  );
   porcentajeFinalizadas = computed(() => {
     const total = this.totalTareas();
     return total ? Math.round((this.totalFinalizadas() / total) * 100) : 0;
@@ -111,6 +116,8 @@ export class TareasListado implements OnInit {
     const body = {
       descripcion: tarea.descripcion,
       estado: nuevoEstado,
+      prioridad: tarea.prioridad,
+      fechaVencimiento: tarea.fechaVencimiento,
     };
 
     this.http.put(`/api/v1/proyectos/${this.idProyecto}/tareas/${tarea.id}`, body).subscribe({
@@ -161,6 +168,39 @@ export class TareasListado implements OnInit {
 
   private contarTareas(estado: EstadosTareasEnum): number {
     return this.tareas().filter((tarea) => tarea.estado === estado).length;
+  }
+
+  etiquetaPrioridad(prioridad: PrioridadesTareasEnum): string {
+    const etiquetas: Record<PrioridadesTareasEnum, string> = {
+      [PrioridadesTareasEnum.ALTA]: 'Alta',
+      [PrioridadesTareasEnum.MEDIA]: 'Media',
+      [PrioridadesTareasEnum.BAJA]: 'Baja',
+    };
+
+    return etiquetas[prioridad] ?? prioridad;
+  }
+
+  fechaCorta(fecha: string | null): string {
+    if (!fecha) {
+      return 'Sin vencimiento';
+    }
+
+    return new Intl.DateTimeFormat('es-AR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: '2-digit',
+    }).format(new Date(`${fecha.slice(0, 10)}T00:00:00`));
+  }
+
+  estaVencida(tarea: ListTareaDTO): boolean {
+    if (!tarea.fechaVencimiento || tarea.estado === EstadosTareasEnum.FINALIZADA || tarea.estado === EstadosTareasEnum.BAJA) {
+      return false;
+    }
+
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    const vencimiento = new Date(`${tarea.fechaVencimiento.slice(0, 10)}T00:00:00`);
+    return vencimiento < hoy;
   }
 
   private etiquetaEstado(estado: EstadosTareasEnum): string {

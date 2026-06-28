@@ -51,6 +51,18 @@ if ($DatabaseUrl) {
 $seedSql = @'
 BEGIN;
 
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'tareas_prioridad_enum') THEN
+        CREATE TYPE tareas_prioridad_enum AS ENUM ('ALTA', 'MEDIA', 'BAJA');
+    END IF;
+END
+$$;
+
+ALTER TABLE tareas
+    ADD COLUMN IF NOT EXISTS prioridad tareas_prioridad_enum NOT NULL DEFAULT 'MEDIA',
+    ADD COLUMN IF NOT EXISTS fecha_vencimiento date;
+
 WITH datos_clientes(numero, nombre_base, estado) AS (
     VALUES
         (1, 'Andes Consultoria', 'ACTIVO'::clientes_estado_enum),
@@ -151,6 +163,7 @@ WITH proyectos_demo AS (
 tareas_demo AS (
     SELECT
         proyecto.id AS proyecto_id,
+        proyecto.numero AS proyecto_numero,
         tarea.numero_tarea,
         CASE tarea.numero_tarea % 6
             WHEN 1 THEN 'Definir alcance y responsables'
@@ -171,10 +184,27 @@ tareas_demo AS (
     FROM proyectos_demo proyecto
     CROSS JOIN LATERAL generate_series(1, 3 + (proyecto.numero % 5)) AS tarea(numero_tarea)
 )
-INSERT INTO tareas (descripcion, estado, proyecto_id, fecha_creacion, fecha_actualizacion)
+INSERT INTO tareas (
+    descripcion,
+    estado,
+    prioridad,
+    fecha_vencimiento,
+    proyecto_id,
+    fecha_creacion,
+    fecha_actualizacion
+)
 SELECT
     descripcion_base || ' - ' || proyecto.nombre,
     tarea.estado,
+    CASE
+        WHEN tarea.numero_tarea = 1 OR tarea.proyecto_numero % 9 = 0 THEN 'ALTA'::tareas_prioridad_enum
+        WHEN tarea.numero_tarea >= 5 THEN 'BAJA'::tareas_prioridad_enum
+        ELSE 'MEDIA'::tareas_prioridad_enum
+    END,
+    CASE
+        WHEN tarea.estado IN ('FINALIZADA'::tareas_estado_enum, 'BAJA'::tareas_estado_enum) THEN NULL
+        ELSE (CURRENT_DATE + (((tarea.proyecto_numero + tarea.numero_tarea) % 21) - 8))::date
+    END,
     proyecto_id,
     tarea.fecha_creacion,
     tarea.fecha_actualizacion
@@ -186,6 +216,21 @@ WHERE NOT EXISTS (
     WHERE existente.proyecto_id = tarea.proyecto_id
       AND existente.descripcion = tarea.descripcion_base || ' - ' || proyecto.nombre
 );
+
+UPDATE tareas tarea
+SET
+    prioridad = CASE
+        WHEN tarea.id % 5 = 0 THEN 'ALTA'::tareas_prioridad_enum
+        WHEN tarea.id % 4 = 0 THEN 'BAJA'::tareas_prioridad_enum
+        ELSE 'MEDIA'::tareas_prioridad_enum
+    END,
+    fecha_vencimiento = CASE
+        WHEN tarea.estado IN ('FINALIZADA'::tareas_estado_enum, 'BAJA'::tareas_estado_enum) THEN NULL
+        ELSE (CURRENT_DATE + ((tarea.id % 21) - 8))::date
+    END
+FROM proyectos proyecto
+WHERE tarea.proyecto_id = proyecto.id
+  AND proyecto.nombre LIKE 'Proyecto Demo %';
 
 COMMIT;
 

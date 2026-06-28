@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, InputSignal, model, ModelSignal, Signal, signal, WritableSignal } from "@angular/core";
+import { Component, computed, effect, inject, input, InputSignal, model, ModelSignal, output, OutputEmitterRef, Signal, signal, WritableSignal } from "@angular/core";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { DialogModule } from "primeng/dialog";
 import { InputTextModule } from 'primeng/inputtext';
@@ -11,6 +11,7 @@ import { EstadosTareasEnum } from "../estados-tareas-enum";
 import { UpdateTareaDto } from "./update-tarea-dto";
 import { CreateTareaDTO } from "./create-tarea-dto";
 import { finalize } from "rxjs";
+import { PrioridadesTareasEnum } from "../prioridades-tareas-enum";
 
 @Component({
     selector: "app-gestion-tarea",
@@ -23,8 +24,10 @@ export class GestionTarea {
     visible: ModelSignal<boolean> = model(false);
 
     tareaSeleccionada: ModelSignal<ListTareaDTO | null> = model<ListTareaDTO | null>(null);
+    onSaved: OutputEmitterRef<void> = output<void>();
 
     readonly estados: WritableSignal<string[]> = signal(Object.values(EstadosTareasEnum));
+    readonly prioridades: WritableSignal<string[]> = signal(Object.values(PrioridadesTareasEnum));
     readonly guardando = signal(false);
 
     private readonly messageService: MessageService = inject(MessageService);
@@ -42,6 +45,8 @@ export class GestionTarea {
 
     readonly form: FormGroup = new FormGroup({
         descripcion: new FormControl("", [Validators.required]),
+        prioridad: new FormControl(PrioridadesTareasEnum.MEDIA, [Validators.required]),
+        fechaVencimiento: new FormControl(null),
         estado: new FormControl(null)
     });
 
@@ -50,12 +55,16 @@ export class GestionTarea {
             if (this.tareaSeleccionada()) {
                 this.form.patchValue({
                     descripcion: this.tareaSeleccionada()?.descripcion,
+                    prioridad: this.tareaSeleccionada()?.prioridad ?? PrioridadesTareasEnum.MEDIA,
+                    fechaVencimiento: this.normalizarFecha(this.tareaSeleccionada()?.fechaVencimiento ?? null),
                     estado: this.tareaSeleccionada()?.estado
                 });
             }
             else {
                 this.form.reset({
                     descripcion: "",
+                    prioridad: PrioridadesTareasEnum.MEDIA,
+                    fechaVencimiento: null,
                     estado: null
                 });
             }
@@ -66,6 +75,8 @@ export class GestionTarea {
         this.tareaSeleccionada.set(null);
         this.form.reset({
             descripcion: "",
+            prioridad: PrioridadesTareasEnum.MEDIA,
+            fechaVencimiento: null,
             estado: null
         });
         this.visible.set(false);
@@ -88,13 +99,16 @@ export class GestionTarea {
         if (this.tareaSeleccionada()) {
             const dto: UpdateTareaDto = {
                 descripcion: formRawValue.descripcion,
-                estado: formRawValue.estado
+                estado: formRawValue.estado,
+                prioridad: formRawValue.prioridad,
+                fechaVencimiento: formRawValue.fechaVencimiento || null
             };
             this.gestionTareaApiClient.actualizarTarea(this.idProyecto(), this.tareaSeleccionada()?.id!, dto).pipe(
                 finalize(() => this.guardando.set(false))
             ).subscribe({
                 next: () => {
                     this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Tarea actualizada correctamente.' });
+                    this.onSaved.emit();
                     this.cerrarDialog();
                 },
                 error: (err) => {
@@ -110,13 +124,16 @@ export class GestionTarea {
             });
         } else {
             const dto: CreateTareaDTO = {
-                descripcion: formRawValue.descripcion
+                descripcion: formRawValue.descripcion,
+                prioridad: formRawValue.prioridad,
+                fechaVencimiento: formRawValue.fechaVencimiento || null
             };
             this.gestionTareaApiClient.crearTarea(this.idProyecto(), dto).pipe(
                 finalize(() => this.guardando.set(false))
             ).subscribe({
                 next: () => {
                     this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Tarea creada correctamente.' });
+                    this.onSaved.emit();
                     this.cerrarDialog();
                 },
                 error: (err) => {
@@ -131,6 +148,10 @@ export class GestionTarea {
                 }
             });
         }
+    }
+
+    private normalizarFecha(fecha: string | null): string | null {
+        return fecha ? fecha.slice(0, 10) : null;
     }
 
 }

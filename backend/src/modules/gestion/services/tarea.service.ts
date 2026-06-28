@@ -7,6 +7,7 @@ import { UpdateTareaDto } from '../dtos/input/update-tarea.dto';
 import { Tarea } from '../entities/tarea.entity';
 import { EstadosTareasEnum } from '../enums/estados-tareas.enum';
 import { Proyecto } from '../entities/proyecto.entity';
+import { PrioridadesTareasEnum } from '../enums/prioridades-tareas.enum';
 
 @Injectable()
 export class TareasService {
@@ -30,11 +31,15 @@ export class TareasService {
       throw new BadRequestException('El proyecto indicado no existe');
     }
 
-    const tarea = this.tareasRepository.create(dto);
-
-    tarea.estado = EstadosTareasEnum.PENDIENTE;
-
-    tarea.proyecto = proyecto;
+    const tarea = this.tareasRepository.create({
+      descripcion: dto.descripcion,
+      prioridad: dto.prioridad ?? PrioridadesTareasEnum.MEDIA,
+      fechaVencimiento: dto.fechaVencimiento
+        ? new Date(dto.fechaVencimiento)
+        : null,
+      estado: EstadosTareasEnum.PENDIENTE,
+      proyecto,
+    });
 
     await this.tareasRepository.save(tarea);
 
@@ -50,7 +55,17 @@ export class TareasService {
       throw new BadRequestException('La tarea indicada no existe');
     }
 
-    this.tareasRepository.merge(tarea, dto);
+    this.tareasRepository.merge(tarea, {
+      descripcion: dto.descripcion,
+      estado: dto.estado,
+      prioridad: dto.prioridad,
+      fechaVencimiento:
+        dto.fechaVencimiento === undefined
+          ? tarea.fechaVencimiento
+          : dto.fechaVencimiento
+            ? new Date(dto.fechaVencimiento)
+            : null,
+    });
 
     await this.tareasRepository.save(tarea);
   }

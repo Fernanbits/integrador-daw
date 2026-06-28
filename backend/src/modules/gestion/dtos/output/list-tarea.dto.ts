@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { EstadosTareasEnum } from '../../enums/estados-tareas.enum';
+import { PrioridadesTareasEnum } from '../../enums/prioridades-tareas.enum';
 
 export class ListTareaDTO {
   @ApiProperty()
@@ -10,4 +11,10 @@ export class ListTareaDTO {
 
   @ApiProperty()
   estado!: EstadosTareasEnum;
+
+  @ApiProperty({ enum: PrioridadesTareasEnum })
+  prioridad!: PrioridadesTareasEnum;
+
+  @ApiProperty({ required: false, nullable: true })
+  fechaVencimiento!: Date | null;
 }
