@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal, WritableSignal } from '@angular/core';
+import { Component, computed, inject, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ListTareaDTO } from './list-tarea-dto';
@@ -28,7 +28,7 @@ import { PrioridadesTareasEnum } from '../prioridades-tareas-enum';
     RouterLink,
   ],
 })
-export class TareasListado implements OnInit {
+export class TareasListado implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly http = inject(HttpClient);
   private readonly messageService = inject(MessageService);
@@ -44,6 +44,10 @@ export class TareasListado implements OnInit {
   loading = signal<boolean>(true);
   actualizandoTareaId = signal<number | null>(null);
   estadoDestino = signal<EstadosTareasEnum | null>(null);
+  tareaArrastradaId = signal<number | null>(null);
+  estadoSobreArrastre = signal<EstadosTareasEnum | null>(null);
+  tareaRecienMovidaId = signal<number | null>(null);
+  private tareaRecienMovidaTimeout: ReturnType<typeof setTimeout> | null = null;
   tareasVisibles = computed(() => {
     const filtro = this.filtroTareas().trim().toLowerCase();
     return this.tareas().filter(
@@ -69,6 +73,12 @@ export class TareasListado implements OnInit {
     this.idProyecto = Number(this.route.snapshot.paramMap.get('id'));
     this.cargarDetallesProyecto();
     this.cargarTareas();
+  }
+
+  ngOnDestroy(): void {
+    if (this.tareaRecienMovidaTimeout) {
+      clearTimeout(this.tareaRecienMovidaTimeout);
+    }
   }
 
   cargarDetallesProyecto(): void {
@@ -106,7 +116,8 @@ export class TareasListado implements OnInit {
   }
 
   actualizarEstadoTarea(tarea: ListTareaDTO, nuevoEstado: EstadosTareasEnum): void {
-    if (this.actualizandoTareaId() !== null) {
+    if (this.actualizandoTareaId() !== null || tarea.estado === nuevoEstado) {
+      this.finalizarArrastre();
       return;
     }
 
@@ -131,12 +142,15 @@ export class TareasListado implements OnInit {
         this.tareas.update((tareas) =>
           tareas.map((item) => (item.id === tarea.id ? { ...item, estado: nuevoEstado } : item)),
         );
+        this.marcarTareaRecienMovida(tarea.id);
         this.actualizandoTareaId.set(null);
         this.estadoDestino.set(null);
+        this.finalizarArrastre();
       },
       error: (err) => {
         this.actualizandoTareaId.set(null);
         this.estadoDestino.set(null);
+        this.finalizarArrastre();
         const errorMsg = err.error?.message || 'Error al actualizar tarea';
 
         this.messageService.add({
@@ -152,8 +166,101 @@ export class TareasListado implements OnInit {
     this.filtroTareas.set('');
   }
 
+  iniciarArrastre(event: DragEvent, tarea: ListTareaDTO): void {
+    if (this.actualizandoTareaId() !== null) {
+      event.preventDefault();
+      return;
+    }
+
+    this.tareaArrastradaId.set(tarea.id);
+    this.estadoSobreArrastre.set(null);
+    event.dataTransfer?.setData('text/plain', String(tarea.id));
+
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+    }
+  }
+
+  permitirSoltar(event: DragEvent, estado: EstadosTareasEnum): void {
+    if (!this.puedeSoltarEnEstado(estado)) {
+      return;
+    }
+
+    event.preventDefault();
+    this.estadoSobreArrastre.set(estado);
+
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'move';
+    }
+  }
+
+  salirZonaArrastre(event: DragEvent, estado: EstadosTareasEnum): void {
+    const columna = event.currentTarget as HTMLElement | null;
+    const siguienteElemento = event.relatedTarget as Node | null;
+
+    if (columna?.contains(siguienteElemento)) {
+      return;
+    }
+
+    if (this.estadoSobreArrastre() === estado) {
+      this.estadoSobreArrastre.set(null);
+    }
+  }
+
+  soltarTarea(event: DragEvent, estado: EstadosTareasEnum): void {
+    event.preventDefault();
+
+    const tareaId = this.tareaArrastradaId() ?? Number(event.dataTransfer?.getData('text/plain'));
+    const tarea = this.tareas().find((item) => item.id === tareaId);
+    this.estadoSobreArrastre.set(null);
+
+    if (!tarea) {
+      this.finalizarArrastre();
+      return;
+    }
+
+    this.actualizarEstadoTarea(tarea, estado);
+  }
+
+  finalizarArrastre(): void {
+    this.tareaArrastradaId.set(null);
+    this.estadoSobreArrastre.set(null);
+  }
+
   estaActualizando(tarea: ListTareaDTO, estado: EstadosTareasEnum): boolean {
     return this.actualizandoTareaId() === tarea.id && this.estadoDestino() === estado;
+  }
+
+  estaEnTransito(tarea: ListTareaDTO): boolean {
+    return this.actualizandoTareaId() === tarea.id;
+  }
+
+  estaArrastrando(tarea: ListTareaDTO): boolean {
+    return this.tareaArrastradaId() === tarea.id;
+  }
+
+  puedeSoltarEnEstado(estado: EstadosTareasEnum): boolean {
+    const tareaId = this.tareaArrastradaId();
+    const tarea = this.tareas().find((item) => item.id === tareaId);
+    return !!tarea && tarea.estado !== estado && this.actualizandoTareaId() === null;
+  }
+
+  esColumnaDestino(estado: EstadosTareasEnum): boolean {
+    return this.estadoSobreArrastre() === estado && this.puedeSoltarEnEstado(estado);
+  }
+
+  esColumnaOrigen(estado: EstadosTareasEnum): boolean {
+    const tareaId = this.tareaArrastradaId();
+    const tarea = this.tareas().find((item) => item.id === tareaId);
+    return !!tarea && tarea.estado === estado;
+  }
+
+  esColumnaActualizando(estado: EstadosTareasEnum): boolean {
+    return this.estadoDestino() === estado && this.actualizandoTareaId() !== null;
+  }
+
+  estaRecienMovida(tarea: ListTareaDTO): boolean {
+    return this.tareaRecienMovidaId() === tarea.id;
   }
 
   agregarTarea(): void {
@@ -168,6 +275,18 @@ export class TareasListado implements OnInit {
 
   private contarTareas(estado: EstadosTareasEnum): number {
     return this.tareas().filter((tarea) => tarea.estado === estado).length;
+  }
+
+  private marcarTareaRecienMovida(tareaId: number): void {
+    if (this.tareaRecienMovidaTimeout) {
+      clearTimeout(this.tareaRecienMovidaTimeout);
+    }
+
+    this.tareaRecienMovidaId.set(tareaId);
+    this.tareaRecienMovidaTimeout = setTimeout(() => {
+      this.tareaRecienMovidaId.set(null);
+      this.tareaRecienMovidaTimeout = null;
+    }, 900);
   }
 
   etiquetaPrioridad(prioridad: PrioridadesTareasEnum): string {

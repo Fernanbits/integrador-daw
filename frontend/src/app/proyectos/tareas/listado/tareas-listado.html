@@ -88,14 +88,35 @@
         ></p-button>
       </section>
     } @else {
-      <section class="kanban-board" aria-label="Tablero Kanban">
-        <div class="kanban-column pendiente">
+      <section
+        class="kanban-board"
+        [class.dragging-board]="tareaArrastradaId() !== null"
+        aria-label="Tablero Kanban"
+      >
+        <div
+          class="kanban-column pendiente"
+          [class.drop-target]="esColumnaDestino($any('PENDIENTE'))"
+          [class.source-column]="esColumnaOrigen($any('PENDIENTE'))"
+          [class.receiving]="esColumnaActualizando($any('PENDIENTE'))"
+          (dragover)="permitirSoltar($event, $any('PENDIENTE'))"
+          (dragleave)="salirZonaArrastre($event, $any('PENDIENTE'))"
+          (drop)="soltarTarea($event, $any('PENDIENTE'))"
+        >
           <header class="column-heading">
             <span>Pendiente</span><strong>{{ totalPendientes() }}</strong>
           </header>
           <div class="column-body">
             @for (tarea of getTareasPorEstado('PENDIENTE'); track tarea.id) {
-              <article class="task-card">
+              <article
+                class="task-card"
+                draggable="true"
+                [class.dragging]="estaArrastrando(tarea)"
+                [class.in-transit]="estaEnTransito(tarea)"
+                [class.just-moved]="estaRecienMovida(tarea)"
+                [attr.aria-grabbed]="estaArrastrando(tarea)"
+                (dragstart)="iniciarArrastre($event, tarea)"
+                (dragend)="finalizarArrastre()"
+              >
                 <span class="task-id">T-{{ tarea.id }}</span>
                 <p>{{ tarea.descripcion }}</p>
                 <div class="task-meta">
@@ -136,13 +157,30 @@
           </div>
         </div>
 
-        <div class="kanban-column progreso">
+        <div
+          class="kanban-column progreso"
+          [class.drop-target]="esColumnaDestino($any('EN_PROGRESO'))"
+          [class.source-column]="esColumnaOrigen($any('EN_PROGRESO'))"
+          [class.receiving]="esColumnaActualizando($any('EN_PROGRESO'))"
+          (dragover)="permitirSoltar($event, $any('EN_PROGRESO'))"
+          (dragleave)="salirZonaArrastre($event, $any('EN_PROGRESO'))"
+          (drop)="soltarTarea($event, $any('EN_PROGRESO'))"
+        >
           <header class="column-heading">
             <span>En progreso</span><strong>{{ totalEnProgreso() }}</strong>
           </header>
           <div class="column-body">
             @for (tarea of getTareasPorEstado('EN_PROGRESO'); track tarea.id) {
-              <article class="task-card">
+              <article
+                class="task-card"
+                draggable="true"
+                [class.dragging]="estaArrastrando(tarea)"
+                [class.in-transit]="estaEnTransito(tarea)"
+                [class.just-moved]="estaRecienMovida(tarea)"
+                [attr.aria-grabbed]="estaArrastrando(tarea)"
+                (dragstart)="iniciarArrastre($event, tarea)"
+                (dragend)="finalizarArrastre()"
+              >
                 <span class="task-id">T-{{ tarea.id }}</span>
                 <p>{{ tarea.descripcion }}</p>
                 <div class="task-meta">
@@ -193,13 +231,30 @@
           </div>
         </div>
 
-        <div class="kanban-column finalizada">
+        <div
+          class="kanban-column finalizada"
+          [class.drop-target]="esColumnaDestino($any('FINALIZADA'))"
+          [class.source-column]="esColumnaOrigen($any('FINALIZADA'))"
+          [class.receiving]="esColumnaActualizando($any('FINALIZADA'))"
+          (dragover)="permitirSoltar($event, $any('FINALIZADA'))"
+          (dragleave)="salirZonaArrastre($event, $any('FINALIZADA'))"
+          (drop)="soltarTarea($event, $any('FINALIZADA'))"
+        >
           <header class="column-heading">
             <span>Finalizada</span><strong>{{ totalFinalizadas() }}</strong>
           </header>
           <div class="column-body">
             @for (tarea of getTareasPorEstado('FINALIZADA'); track tarea.id) {
-              <article class="task-card completada">
+              <article
+                class="task-card completada"
+                draggable="true"
+                [class.dragging]="estaArrastrando(tarea)"
+                [class.in-transit]="estaEnTransito(tarea)"
+                [class.just-moved]="estaRecienMovida(tarea)"
+                [attr.aria-grabbed]="estaArrastrando(tarea)"
+                (dragstart)="iniciarArrastre($event, tarea)"
+                (dragend)="finalizarArrastre()"
+              >
                 <span class="task-id">T-{{ tarea.id }}</span>
                 <p>{{ tarea.descripcion }}</p>
                 <div class="task-meta">
