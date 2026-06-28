@@ -17,7 +17,7 @@
 
 PULSO es una aplicacion web para centralizar la gestion de proyectos, clientes y tareas de una consultora. La propuesta prioriza una operacion clara: permite conocer el estado del trabajo, encontrar informacion con rapidez y actualizar el avance desde una interfaz unica.
 
-El sistema fue desarrollado como Trabajo Final Integrador de la Tecnicatura Universitaria en Desarrollo Web. Implementa los requerimientos funcionales de la catedra y suma cuatro expansiones orientadas a mejorar la consulta, el seguimiento y la toma de decisiones.
+El sistema fue desarrollado como Trabajo Final Integrador de la Tecnicatura Universitaria en Desarrollo Web. Implementa los requerimientos funcionales de la catedra y suma cinco expansiones orientadas a mejorar la consulta, el seguimiento, la trazabilidad y la toma de decisiones.
 
 ## Funcionalidades
 
@@ -37,8 +37,11 @@ El sistema fue desarrollado como Trabajo Final Integrador de la Tecnicatura Univ
 | Exportacion de datos | Descarga de los proyectos visibles en formato CSV. |
 | Estadisticas | Indicadores de proyectos y resumen de tareas por estado, con porcentaje de avance. |
 | Panel visual de tareas | Tablero Kanban con columnas por estado, tarjetas, busqueda y cambio rapido de situacion. |
+| Bitacora de proyectos | Linea de tiempo por proyecto con eventos de creacion, actualizacion, cliente asociado, tareas y pulso actual. |
 
-Estas cuatro funcionalidades cubren el requisito de incorporar al menos una expansion por integrante del equipo.
+Estas funcionalidades cubren el requisito de incorporar al menos una expansion por integrante del equipo.
+
+La extension de bitacora se documenta con mas detalle en [docs/bitacora-proyectos.md](docs/bitacora-proyectos.md).
 
 ## Arquitectura
 
@@ -105,6 +108,14 @@ Para generar ambos builds de produccion:
 ```bash
 npm run build
 ```
+
+Para agregar datos de demostracion a la base configurada en `backend/.env`:
+
+```powershell
+.\scripts\seed-demo-data.ps1
+```
+
+El script agrega clientes, proyectos y tareas con nombres `Demo` de forma idempotente, por lo que puede ejecutarse nuevamente sin duplicar ese lote.
 
 La instalacion tradicional se detalla en la [guia de despliegue con nginx y PM2](docs/despliegue-nginx-pm2.md).
 

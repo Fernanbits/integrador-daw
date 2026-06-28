@@ -1,6 +1,6 @@
 # Backend de PULSO
 
-API REST construida con NestJS 11, TypeORM y PostgreSQL. Implementa autenticacion JWT, validacion de entradas y las reglas de negocio para usuarios, clientes, proyectos y tareas.
+API REST construida con NestJS 11, TypeORM y PostgreSQL. Implementa autenticacion JWT, validacion de entradas y las reglas de negocio para usuarios, clientes, proyectos y tareas. Tambien expone la bitacora de cada proyecto como una linea de tiempo calculada desde los datos existentes.
 
 ## Configuracion
 
@@ -12,6 +12,19 @@ npm run start:dev
 ```
 
 La API se inicia en `http://localhost:3000/api/v1`.
+
+## Bitacora de proyectos
+
+La extension agrega el endpoint autenticado `GET /api/v1/proyectos/:id/bitacora`. Devuelve un `BitacoraProyectoDTO` con el identificador y nombre del proyecto, mas una lista de eventos ordenados desde la actividad mas reciente.
+
+Cada evento incluye:
+
+- `tipo`: `PROYECTO`, `CLIENTE`, `TAREA` o `PULSO`;
+- `titulo` y `detalle`: descripcion legible para mostrar en la interfaz;
+- `fecha`: momento asociado al evento;
+- `impacto`: `ALTO`, `MEDIO`, `BAJO` o `NEUTRO`.
+
+Los eventos se calculan a partir de la creacion y actualizacion del proyecto, el cliente asociado, las tareas relacionadas y el diagnostico de pulso actual. No requiere una tabla adicional ni persiste registros historicos independientes.
 
 ## Comandos
 
