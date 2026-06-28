@@ -115,6 +115,12 @@ Para agregar datos de demostracion a la base configurada en `backend/.env`:
 .\scripts\seed-demo-data.ps1
 ```
 
+Para cargar esos datos en una base alojada, como Neon, pasar la URL de conexion sin modificar `.env`:
+
+```powershell
+.\scripts\seed-demo-data.ps1 -DatabaseUrl "postgresql://usuario:clave@host/base?sslmode=require"
+```
+
 El script agrega clientes, proyectos y tareas con nombres `Demo` de forma idempotente, por lo que puede ejecutarse nuevamente sin duplicar ese lote.
 
 La instalacion tradicional se detalla en la [guia de despliegue con nginx y PM2](docs/despliegue-nginx-pm2.md).

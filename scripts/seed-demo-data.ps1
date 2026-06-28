@@ -1,10 +1,11 @@
 param(
+    [string]$DatabaseUrl,
     [string]$EnvPath = "$PSScriptRoot\..\backend\.env"
 )
 
 $ErrorActionPreference = 'Stop'
 
-if (-not (Test-Path -LiteralPath $EnvPath)) {
+if (-not $DatabaseUrl -and -not (Test-Path -LiteralPath $EnvPath)) {
     throw "No se encontro el archivo de entorno: $EnvPath"
 }
 
@@ -12,19 +13,23 @@ if (-not (Get-Command psql -ErrorAction SilentlyContinue)) {
     throw 'No se encontro psql en PATH. Instala las herramientas de PostgreSQL.'
 }
 
-Get-Content -LiteralPath $EnvPath | ForEach-Object {
-    $line = $_.Trim()
-    if (-not $line -or $line.StartsWith('#') -or -not $line.Contains('=')) {
-        return
-    }
+if (-not $DatabaseUrl) {
+    Get-Content -LiteralPath $EnvPath | ForEach-Object {
+        $line = $_.Trim()
+        if (-not $line -or $line.StartsWith('#') -or -not $line.Contains('=')) {
+            return
+        }
 
-    $key, $value = $line.Split('=', 2)
-    $value = $value.Trim().Trim('"').Trim("'")
-    [Environment]::SetEnvironmentVariable($key.Trim(), $value, 'Process')
+        $key, $value = $line.Split('=', 2)
+        $value = $value.Trim().Trim('"').Trim("'")
+        [Environment]::SetEnvironmentVariable($key.Trim(), $value, 'Process')
+    }
 }
 
 $connectionArgs = @()
-if ($env:DATABASE_URL) {
+if ($DatabaseUrl) {
+    $connectionArgs = @("--dbname=$DatabaseUrl")
+} elseif ($env:DATABASE_URL) {
     $connectionArgs = @("--dbname=$env:DATABASE_URL")
 } else {
     if (-not $env:DB_HOST -or -not $env:DB_USERNAME -or -not $env:DB_NAME) {
