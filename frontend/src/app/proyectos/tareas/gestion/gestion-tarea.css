@@ -12,9 +12,33 @@
 }
 
 .entity-form input,
-.entity-form p-select,
+.entity-form select,
 .entity-form button {
     width: 100%;
+}
+
+.entity-form input,
+.entity-form select {
+    background: var(--control-bg);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    color: var(--paper);
+    min-height: 2.75rem;
+    padding: 0 0.75rem;
+}
+
+.entity-form input[type="date"] {
+    color-scheme: dark;
+}
+
+.entity-form select {
+    cursor: pointer;
+}
+
+.entity-form input:focus,
+.entity-form select:focus {
+    border-color: var(--cyan);
+    outline: 0;
 }
 
 .entity-form button {

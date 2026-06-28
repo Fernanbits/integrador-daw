@@ -12,14 +12,22 @@
             }
 
             <label for="tarea-prioridad">Prioridad</label>
-            <p-select inputId="tarea-prioridad" formControlName="prioridad" [options]="prioridades()" placeholder="Prioridad" appendTo="body" />
+            <select id="tarea-prioridad" formControlName="prioridad" aria-label="Prioridad de la tarea">
+                @for (prioridad of prioridades(); track prioridad) {
+                    <option [value]="prioridad">{{ etiquetaPrioridad(prioridad) }}</option>
+                }
+            </select>
 
             <label for="tarea-vencimiento">Fecha de vencimiento</label>
-            <input pInputText type="date" id="tarea-vencimiento" formControlName="fechaVencimiento" />
+            <input pInputText type="date" id="tarea-vencimiento" formControlName="fechaVencimiento" aria-label="Fecha de vencimiento de la tarea" />
 
             @if (tareaSeleccionada()) {
                 <label for="tarea-estado">Estado</label>
-                <p-select inputId="tarea-estado" formControlName="estado" [options]="estados()" placeholder="Estado" appendTo="body" />
+                <select id="tarea-estado" formControlName="estado" aria-label="Estado de la tarea">
+                    @for (estado of estados(); track estado) {
+                        <option [value]="estado">{{ etiquetaEstado(estado) }}</option>
+                    }
+                </select>
             }
 
             <button pButton type="submit" icon="pi pi-check" label="Guardar tarea"

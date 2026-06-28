@@ -2,7 +2,6 @@ import { Component, computed, effect, inject, input, InputSignal, model, ModelSi
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { DialogModule } from "primeng/dialog";
 import { InputTextModule } from 'primeng/inputtext';
-import { SelectModule } from 'primeng/select';
 import { MessageService } from "primeng/api";
 import { GestionTareaApiClient } from "./gestion-tarea-api-client";
 import { ButtonModule } from "primeng/button";
@@ -17,7 +16,7 @@ import { PrioridadesTareasEnum } from "../prioridades-tareas-enum";
     selector: "app-gestion-tarea",
     templateUrl: "./gestion-tarea.html",
     styleUrls: ["./gestion-tarea.css"],
-    imports: [DialogModule, InputTextModule, SelectModule, ButtonModule, ReactiveFormsModule]
+    imports: [DialogModule, InputTextModule, ButtonModule, ReactiveFormsModule]
 })
 export class GestionTarea {
 
@@ -152,6 +151,27 @@ export class GestionTarea {
 
     private normalizarFecha(fecha: string | null): string | null {
         return fecha ? fecha.slice(0, 10) : null;
+    }
+
+    etiquetaPrioridad(prioridad: string): string {
+        const etiquetas: Record<string, string> = {
+            [PrioridadesTareasEnum.ALTA]: "Alta",
+            [PrioridadesTareasEnum.MEDIA]: "Media",
+            [PrioridadesTareasEnum.BAJA]: "Baja"
+        };
+
+        return etiquetas[prioridad] ?? prioridad;
+    }
+
+    etiquetaEstado(estado: string): string {
+        const etiquetas: Record<string, string> = {
+            [EstadosTareasEnum.PENDIENTE]: "Pendiente",
+            [EstadosTareasEnum.EN_PROGRESO]: "En progreso",
+            [EstadosTareasEnum.FINALIZADA]: "Finalizada",
+            [EstadosTareasEnum.BAJA]: "Baja"
+        };
+
+        return etiquetas[estado] ?? estado;
     }
 
 }
