@@ -166,6 +166,22 @@ export class TareasListado implements OnInit, OnDestroy {
     this.filtroTareas.set('');
   }
 
+  tareaGuardada(tareaGuardada: ListTareaDTO): void {
+    const existe = this.tareas().some((tarea) => tarea.id === tareaGuardada.id);
+
+    if (existe) {
+      this.tareas.update((tareas) =>
+        tareas.map((tarea) => (tarea.id === tareaGuardada.id ? tareaGuardada : tarea)),
+      );
+      this.marcarTareaRecienMovida(tareaGuardada.id);
+      return;
+    }
+
+    this.filtroTareas.set('');
+    this.tareas.update((tareas) => [tareaGuardada, ...tareas]);
+    this.marcarTareaRecienMovida(tareaGuardada.id);
+  }
+
   iniciarArrastre(event: DragEvent, tarea: ListTareaDTO): void {
     if (this.actualizandoTareaId() !== null) {
       event.preventDefault();

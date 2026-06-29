@@ -130,7 +130,7 @@ export class ProyectosService {
     };
     const sortBy = sortColumns[params.sortBy || 'id'] || sortColumns.id;
     const sortDirection =
-      params.sortDirection?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
+      params.sortDirection?.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
     const query = this.repository
       .createQueryBuilder('proyecto')
@@ -332,8 +332,18 @@ export class ProyectosService {
         estados: ['BAJA', 'FINALIZADA'],
       })
       .andWhere('tarea.fechaVencimiento IS NOT NULL')
+      .andWhere('tarea.fechaVencimiento >= CURRENT_DATE')
+      .andWhere("tarea.fechaVencimiento <= CURRENT_DATE + INTERVAL '7 days'")
       .orderBy('tarea.fechaVencimiento', 'ASC')
-      .addOrderBy('tarea.prioridad', 'ASC')
+      .addOrderBy(
+        `CASE tarea.prioridad
+          WHEN 'ALTA' THEN 1
+          WHEN 'MEDIA' THEN 2
+          WHEN 'BAJA' THEN 3
+          ELSE 4
+        END`,
+        'ASC',
+      )
       .take(8)
       .getMany();
 

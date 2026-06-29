@@ -30,7 +30,7 @@ export class ProyectosListadoApiClient {
         page: number = 1,
         limit: number = 5,
         sortBy: string = 'id',
-        sortDirection: string = 'ASC'
+        sortDirection: string = 'DESC'
     ): Observable<ProyectosPaginadosResponse> {
         let params = new HttpParams()
             .set('page', page)

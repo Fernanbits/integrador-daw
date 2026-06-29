@@ -35,6 +35,65 @@
   justify-content: flex-end;
 }
 
+.pdf-filter-panel {
+  align-items: end;
+  border: 1px solid var(--line);
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: minmax(15rem, 1.25fr) repeat(3, minmax(9rem, 1fr));
+  margin: -0.75rem auto 1.5rem;
+  max-width: 92rem;
+  padding: 0.9rem;
+}
+
+.pdf-filter-panel label {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.pdf-filter-panel label > span {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.pdf-filter-panel select {
+  background: var(--ink-raised);
+  border: 1px solid var(--line);
+  color: var(--paper);
+  min-height: 2.65rem;
+  padding: 0 0.75rem;
+  width: 100%;
+}
+
+.pdf-section-toggles {
+  display: grid;
+  gap: 0.45rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pdf-section-toggles label {
+  align-items: center;
+  background: var(--ink-raised);
+  border: 1px solid var(--line);
+  display: flex;
+  gap: 0.45rem;
+  min-height: 2.65rem;
+  padding: 0 0.65rem;
+}
+
+.pdf-section-toggles input {
+  accent-color: var(--cyan);
+  margin: 0;
+}
+
+.pdf-section-toggles label > span {
+  color: var(--paper);
+  font-size: 0.72rem;
+}
+
 .dashboard-loading {
   align-items: center;
   border-bottom: 1px solid var(--line);
@@ -47,6 +106,36 @@
   max-width: 92rem;
   min-height: 16rem;
   text-transform: uppercase;
+}
+
+.dashboard-error {
+  align-items: center;
+  border: 1px solid rgba(239, 68, 68, 0.55);
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: auto 1fr auto;
+  margin: 0 auto;
+  max-width: 92rem;
+  min-height: 9rem;
+  padding: 1.25rem;
+}
+
+.dashboard-error > i {
+  color: #fecaca;
+  font-size: 1.35rem;
+}
+
+.dashboard-error strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  text-transform: uppercase;
+}
+
+.dashboard-error span {
+  color: var(--muted);
+  display: block;
+  margin-top: 0.35rem;
 }
 
 .metric-grid,
@@ -239,9 +328,19 @@
   .heading-actions {
     justify-content: stretch;
   }
+  .pdf-filter-panel,
   .metric-grid,
   .dashboard-grid,
   .pulse-bars {
     grid-template-columns: 1fr;
+  }
+  .pdf-section-toggles {
+    grid-template-columns: 1fr;
+  }
+  .dashboard-error {
+    grid-template-columns: auto 1fr;
+  }
+  .dashboard-error p-button {
+    grid-column: 1 / -1;
   }
 }

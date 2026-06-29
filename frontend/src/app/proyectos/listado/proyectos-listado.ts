@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal, untracked, WritableSignal } from "@angular/core";
+import { Component, computed, effect, inject, OnDestroy, signal, untracked, WritableSignal } from "@angular/core";
 import { MessageService } from "primeng/api";
 import { ListProyectoDTO } from "./list-proyecto-dto";
 import { ProyectosListadoApiClient } from "./proyectos-listado-api-client";
@@ -20,7 +20,7 @@ import { BitacoraProyectoDTO, TipoBitacoraProyecto } from "./bitacora-proyecto-d
   styleUrls: ["./proyectos-listado.css"],
   imports: [TableModule, ButtonModule, Template, TooltipModule, GestionProyecto, FormsModule, CommonModule, DialogModule]
 })
-export class ProyectosListado {
+export class ProyectosListado implements OnDestroy {
 
   private readonly messageService: MessageService = inject(MessageService);
   private readonly proyectosListadoApiClient: ProyectosListadoApiClient = inject(ProyectosListadoApiClient);
@@ -40,7 +40,7 @@ export class ProyectosListado {
   searchQuery = signal<string>('');
   estadoFiltro = signal<string>('');
   sortBy = signal<string>('id');
-  sortDirection = signal<string>('ASC');
+  sortDirection = signal<string>('DESC');
 
   currentPage = signal<number>(1);
   totalPages = signal<number>(1);
@@ -61,6 +61,7 @@ export class ProyectosListado {
   );
 
   private debounceTimer?: ReturnType<typeof setTimeout>;
+  private requestSequence = 0;
 
   constructor() {
     effect(() => {
@@ -71,6 +72,7 @@ export class ProyectosListado {
   }
 
   refrescarProyectos(): void {
+    const requestId = ++this.requestSequence;
     this.loading.set(true);
     this.errorMessage.set(null);
 
@@ -82,9 +84,17 @@ export class ProyectosListado {
       this.sortBy(),
       this.sortDirection()
     ).pipe(
-      finalize(() => this.loading.set(false))
+      finalize(() => {
+        if (requestId === this.requestSequence) {
+          this.loading.set(false);
+        }
+      })
     ).subscribe({
       next: (response) => {
+        if (requestId !== this.requestSequence) {
+          return;
+        }
+
         const total = Number(response?.total ?? 0);
         const lastPage = Math.max(Number(response?.lastPage ?? 1), 1);
         const page = Math.min(Math.max(Number(response?.page ?? this.currentPage()), 1), lastPage);
@@ -108,6 +118,10 @@ export class ProyectosListado {
         this.proyectosInternos.set(Number(response.resumen?.internos ?? 0));
       },
       error: (error) => {
+        if (requestId !== this.requestSequence) {
+          return;
+        }
+
         const detail = error?.error?.message ?? 'No se pudieron cargar los proyectos';
         this.errorMessage.set(detail);
         this.proyectos.set([]);
@@ -162,9 +176,14 @@ export class ProyectosListado {
     this.searchQuery.set('');
     this.estadoFiltro.set('');
     this.sortBy.set('id');
-    this.sortDirection.set('ASC');
+    this.sortDirection.set('DESC');
     this.currentPage.set(1);
     this.refrescarProyectos();
+  }
+
+  ngOnDestroy(): void {
+    clearTimeout(this.debounceTimer);
+    this.requestSequence++;
   }
 
   paginasVisibles(): number[] {
@@ -234,7 +253,7 @@ export class ProyectosListado {
     return etiquetas[nivel] ?? nivel;
   }
 
-  exportarCsv(): void {
+  exportarExcel(): void {
     if (!this.proyectos().length) {
       this.messageService.add({
         severity: 'warn',
@@ -244,21 +263,96 @@ export class ProyectosListado {
       return;
     }
 
-    const filas = this.proyectos().map((proyecto) => [
-      proyecto.id,
-      proyecto.nombre,
-      proyecto.estado,
-      proyecto.cliente?.nombre ?? 'Desarrollo Interno'
-    ]);
-    const csv = [
-      ['ID', 'Nombre', 'Estado', 'Cliente'],
-      ...filas
-    ].map((fila) => fila.map((valor) => this.valorCsv(valor)).join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const fecha = new Intl.DateTimeFormat('es-AR', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(new Date());
+    const estadoFiltro = this.estadoFiltro() || 'Todos';
+    const busqueda = this.searchQuery().trim() || 'Sin busqueda';
+    const filas = this.proyectos()
+      .map(
+        (proyecto) => `
+          <tr>
+            <td class="id">P-${proyecto.id}</td>
+            <td class="project"><strong>${this.escapeExcel(proyecto.nombre)}</strong></td>
+            <td>${this.escapeExcel(proyecto.cliente?.nombre ?? 'Desarrollo interno')}</td>
+            <td><span class="status status-${proyecto.estado.toLowerCase()}">${this.escapeExcel(proyecto.estado)}</span></td>
+            <td><span class="pulse pulse-${proyecto.pulso.nivel.toLowerCase()}">${this.etiquetaPulso(proyecto.pulso.nivel)}</span></td>
+            <td class="number">${proyecto.pulso.puntaje}</td>
+            <td class="number">${proyecto.pulso.avance}%</td>
+            <td>${this.escapeExcel(proyecto.pulso.recomendacion)}</td>
+          </tr>`,
+      )
+      .join('');
+    const html = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta charset="utf-8" />
+        <!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Proyectos</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->
+        <style>
+          body { font-family: Arial, sans-serif; color: #111413; }
+          .brand { background: #111413; color: #f2efe7; font-size: 26px; font-weight: 800; text-transform: uppercase; }
+          .brand-small { background: #111413; color: #b8c0bb; font-size: 11px; text-transform: uppercase; }
+          .stripe-coral { background: #ff5138; }
+          .stripe-cyan { background: #26bfd1; }
+          .stripe-acid { background: #d7ef4a; }
+          .meta-label { background: #efede5; color: #59615d; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+          .meta-value { background: #fffdf7; color: #111413; font-weight: 700; }
+          .metric-label { background: #111413; color: #f2efe7; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+          .metric-value { background: #fffdf7; border: 1px solid #d9ded8; font-size: 22px; font-weight: 800; }
+          th { background: #202522; color: #f2efe7; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+          td { border-bottom: 1px solid #e6e2d8; font-size: 12px; vertical-align: top; }
+          .id { color: #ff5138; font-weight: 800; }
+          .project { min-width: 220px; }
+          .number { text-align: right; }
+          .status, .pulse { font-weight: 800; text-transform: uppercase; }
+          .status-activo, .pulse-estable { color: #166534; }
+          .status-finalizado, .pulse-cerrado { color: #087f91; }
+          .status-baja, .pulse-pausado { color: #6d7671; }
+          .pulse-atencion { color: #92400e; }
+          .pulse-critico { color: #991b1b; }
+          .pulse-sin_datos { color: #59615d; }
+        </style>
+      </head>
+      <body>
+        <table>
+          <tr><td class="stripe-coral"></td><td class="stripe-cyan"></td><td class="stripe-acid"></td><td colspan="5"></td></tr>
+          <tr><td colspan="8" class="brand">PULSO · Reporte de proyectos</td></tr>
+          <tr><td colspan="8" class="brand-small">Gestion de proyectos · Grupo AM · ${this.escapeExcel(fecha)}</td></tr>
+          <tr><td colspan="8"></td></tr>
+          <tr>
+            <td class="meta-label">Busqueda</td><td class="meta-value">${this.escapeExcel(busqueda)}</td>
+            <td class="meta-label">Estado</td><td class="meta-value">${this.escapeExcel(estadoFiltro)}</td>
+            <td class="meta-label">Pagina</td><td class="meta-value">${this.currentPage()} / ${this.totalPages()}</td>
+            <td class="meta-label">Registros</td><td class="meta-value">${this.proyectos().length} de ${this.totalItems()}</td>
+          </tr>
+          <tr><td colspan="8"></td></tr>
+          <tr>
+            <td class="metric-label">Activos</td><td class="metric-value">${this.proyectosActivos()}</td>
+            <td class="metric-label">Finalizados</td><td class="metric-value">${this.proyectosFinalizados()}</td>
+            <td class="metric-label">En baja</td><td class="metric-value">${this.proyectosBaja()}</td>
+            <td class="metric-label">Internos</td><td class="metric-value">${this.proyectosInternos()}</td>
+          </tr>
+          <tr><td colspan="8"></td></tr>
+          <tr>
+            <th>ID</th>
+            <th>Proyecto</th>
+            <th>Cliente</th>
+            <th>Estado</th>
+            <th>Pulso</th>
+            <th>Puntaje</th>
+            <th>Avance</th>
+            <th>Recomendacion</th>
+          </tr>
+          ${filas}
+        </table>
+      </body>
+      </html>`;
+    const blob = new Blob(['\ufeff', html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'proyectos.csv';
+    link.download = 'pulso-proyectos.xls';
     link.click();
     URL.revokeObjectURL(url);
   }
@@ -285,8 +379,12 @@ export class ProyectosListado {
     return etiquetas[tipo];
   }
 
-  private valorCsv(valor: unknown): string {
-    const texto = String(valor ?? '').replace(/"/g, '""');
-    return `"${texto}"`;
+  private escapeExcel(valor: unknown): string {
+    return String(valor ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 }

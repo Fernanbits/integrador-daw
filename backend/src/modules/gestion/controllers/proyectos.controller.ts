@@ -94,5 +94,3 @@ export class ProyectosController {
     return await this.proyectosService.obtenerProyecto(id);
   }
 }
-
-``;

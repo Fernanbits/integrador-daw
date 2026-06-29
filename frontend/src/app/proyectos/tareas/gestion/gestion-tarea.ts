@@ -23,7 +23,7 @@ export class GestionTarea {
     visible: ModelSignal<boolean> = model(false);
 
     tareaSeleccionada: ModelSignal<ListTareaDTO | null> = model<ListTareaDTO | null>(null);
-    onSaved: OutputEmitterRef<void> = output<void>();
+    onSaved: OutputEmitterRef<ListTareaDTO> = output<ListTareaDTO>();
 
     readonly estados: WritableSignal<string[]> = signal(Object.values(EstadosTareasEnum));
     readonly prioridades: WritableSignal<string[]> = signal(Object.values(PrioridadesTareasEnum));
@@ -96,18 +96,25 @@ export class GestionTarea {
         this.guardando.set(true);
 
         if (this.tareaSeleccionada()) {
+            const tareaActual = this.tareaSeleccionada()!;
             const dto: UpdateTareaDto = {
                 descripcion: formRawValue.descripcion,
-                estado: formRawValue.estado,
-                prioridad: formRawValue.prioridad,
+                estado: formRawValue.estado ?? tareaActual.estado,
+                prioridad: formRawValue.prioridad ?? tareaActual.prioridad,
                 fechaVencimiento: formRawValue.fechaVencimiento || null
             };
-            this.gestionTareaApiClient.actualizarTarea(this.idProyecto(), this.tareaSeleccionada()?.id!, dto).pipe(
+            this.gestionTareaApiClient.actualizarTarea(this.idProyecto(), tareaActual.id, dto).pipe(
                 finalize(() => this.guardando.set(false))
             ).subscribe({
                 next: () => {
                     this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Tarea actualizada correctamente.' });
-                    this.onSaved.emit();
+                    this.onSaved.emit({
+                        ...tareaActual,
+                        descripcion: dto.descripcion,
+                        estado: dto.estado,
+                        prioridad: dto.prioridad ?? tareaActual.prioridad,
+                        fechaVencimiento: dto.fechaVencimiento ?? null
+                    });
                     this.cerrarDialog();
                 },
                 error: (err) => {
@@ -130,9 +137,15 @@ export class GestionTarea {
             this.gestionTareaApiClient.crearTarea(this.idProyecto(), dto).pipe(
                 finalize(() => this.guardando.set(false))
             ).subscribe({
-                next: () => {
+                next: (response) => {
                     this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Tarea creada correctamente.' });
-                    this.onSaved.emit();
+                    this.onSaved.emit({
+                        id: response.id,
+                        descripcion: dto.descripcion,
+                        estado: EstadosTareasEnum.PENDIENTE,
+                        prioridad: dto.prioridad ?? PrioridadesTareasEnum.MEDIA,
+                        fechaVencimiento: dto.fechaVencimiento ?? null
+                    });
                     this.cerrarDialog();
                 },
                 error: (err) => {

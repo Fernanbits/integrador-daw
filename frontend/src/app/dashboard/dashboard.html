@@ -3,7 +3,7 @@
     <div>
       <p class="section-index">01 / CONTROL GENERAL</p>
       <h1>Dashboard</h1>
-      <p>Portfolio, vencimientos y prioridades</p>
+      <p>Portfolio, vencimientos y prioridades · {{ fechaActualizacion() }}</p>
     </div>
 
     <div class="heading-actions">
@@ -12,10 +12,68 @@
     </div>
   </section>
 
+  @if (dashboard()) {
+    <section class="pdf-filter-panel" aria-label="Filtros del reporte PDF">
+      <div class="pdf-section-toggles">
+        <label>
+          <input type="checkbox" [ngModel]="incluirResumenPdf()" (ngModelChange)="incluirResumenPdf.set($event)" />
+          <span>Resumen</span>
+        </label>
+        <label>
+          <input type="checkbox" [ngModel]="incluirRiesgosPdf()" (ngModelChange)="incluirRiesgosPdf.set($event)" />
+          <span>Riesgos</span>
+        </label>
+        <label>
+          <input type="checkbox" [ngModel]="incluirVencimientosPdf()" (ngModelChange)="incluirVencimientosPdf.set($event)" />
+          <span>Vencimientos</span>
+        </label>
+      </div>
+
+      <label>
+        <span>Pulso</span>
+        <select [ngModel]="filtroPulsoPdf()" (ngModelChange)="filtroPulsoPdf.set($event)">
+          <option value="">Todos</option>
+          @for (nivel of nivelesPulso; track nivel) {
+            <option [value]="nivel">{{ etiquetaPulso(nivel) }}</option>
+          }
+        </select>
+      </label>
+
+      <label>
+        <span>Prioridad</span>
+        <select [ngModel]="filtroPrioridadPdf()" (ngModelChange)="filtroPrioridadPdf.set($event)">
+          <option value="">Todas</option>
+          @for (prioridad of prioridadesTarea; track prioridad) {
+            <option [value]="prioridad">{{ etiquetaPrioridad(prioridad) }}</option>
+          }
+        </select>
+      </label>
+
+      <label>
+        <span>Estado tarea</span>
+        <select [ngModel]="filtroEstadoTareaPdf()" (ngModelChange)="filtroEstadoTareaPdf.set($event)">
+          <option value="">Todos</option>
+          @for (estado of estadosTarea; track estado) {
+            <option [value]="estado">{{ etiquetaEstadoTarea(estado) }}</option>
+          }
+        </select>
+      </label>
+    </section>
+  }
+
   @if (loading()) {
     <section class="dashboard-loading" aria-live="polite">
       <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
       <span>Sincronizando dashboard</span>
+    </section>
+  } @else if (errorMessage()) {
+    <section class="dashboard-error" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <div>
+        <strong>No pudimos sincronizar el dashboard</strong>
+        <span>{{ errorMessage() }}</span>
+      </div>
+      <p-button icon="pi pi-refresh" label="Reintentar" severity="secondary" (click)="cargarDashboard()"></p-button>
     </section>
   } @else if (dashboard(); as data) {
     <section class="metric-grid" aria-label="Resumen general">
@@ -102,7 +160,7 @@
               <time>{{ fechaCorta(tarea.fechaVencimiento) }}</time>
               <div>
                 <strong>{{ tarea.descripcion }}</strong>
-                <span>{{ tarea.proyecto }} · {{ tarea.prioridad }}</span>
+                <span>{{ tarea.proyecto }} · {{ etiquetaPrioridad(tarea.prioridad) }}</span>
               </div>
             </div>
           } @empty {

@@ -491,10 +491,22 @@ h1 {
     grid-template-columns: repeat(2, 1fr);
   }
   .kanban-board {
-    grid-template-columns: 1fr;
+    display: flex;
+    gap: 0.85rem;
+    max-width: 100%;
+    overflow-x: auto;
+    padding: 0 1rem 1rem;
+    scroll-padding: 1rem;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
   }
   .kanban-column {
+    flex: 0 0 min(23rem, calc(100vw - 2.5rem));
     min-height: 12rem;
+    scroll-snap-align: start;
+  }
+  .column-body {
+    min-height: 18rem;
   }
 }
 
@@ -506,12 +518,73 @@ h1 {
   .board-heading p-button {
     align-self: stretch;
   }
+  h1 {
+    font-size: 2.45rem;
+    max-width: 100%;
+  }
+  .kanban-resumen {
+    border-bottom: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .kanban-metrica {
+    border-bottom: 1px solid var(--line);
+    padding: 0.75rem 0.85rem;
+  }
+  .kanban-metrica:nth-child(2n) {
+    border-right: 0;
+  }
+  .kanban-metrica span {
+    font-size: 0.62rem;
+  }
+  .kanban-metrica strong {
+    font-size: 1.45rem;
+  }
   .kanban-toolbar {
     align-items: stretch;
     flex-direction: column;
+    margin-bottom: 0.75rem;
   }
   .search-control {
     max-width: none;
+  }
+  .kanban-board {
+    margin-left: -1rem;
+    margin-right: -1rem;
+  }
+  .kanban-column {
+    flex-basis: calc(100vw - 2rem);
+  }
+  .column-heading {
+    min-height: 3rem;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  .column-body {
+    gap: 0.65rem;
+    min-height: 16rem;
+    padding: 0.65rem;
+  }
+  .task-card {
+    min-height: 0;
+    padding: 0.85rem;
+  }
+  .task-card p {
+    font-size: 0.92rem;
+    margin: 0.45rem 0 0.7rem;
+  }
+  .task-meta {
+    gap: 0.35rem;
+    margin-bottom: 0.8rem;
+  }
+  .priority-chip,
+  .due-chip {
+    font-size: 0.6rem;
+    min-height: 1.55rem;
+    padding: 0 0.45rem;
+  }
+  .card-actions {
+    justify-content: space-between;
   }
   .no-results {
     grid-template-columns: auto 1fr;
