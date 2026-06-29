@@ -38,12 +38,14 @@
 .pdf-filter-panel {
   align-items: end;
   border: 1px solid var(--line);
+  box-sizing: border-box;
   display: grid;
   gap: 0.9rem;
-  grid-template-columns: minmax(15rem, 1.25fr) repeat(3, minmax(9rem, 1fr));
+  grid-template-columns: repeat(3, minmax(9rem, 1fr));
   margin: -0.75rem auto 1.5rem;
   max-width: 92rem;
   padding: 0.9rem;
+  width: 100%;
 }
 
 .pdf-filter-panel label {
@@ -71,7 +73,8 @@
 .pdf-section-toggles {
   display: grid;
   gap: 0.45rem;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(3, minmax(8rem, 1fr));
 }
 
 .pdf-section-toggles label {
@@ -81,6 +84,7 @@
   display: flex;
   gap: 0.45rem;
   min-height: 2.65rem;
+  min-width: 0;
   padding: 0 0.65rem;
 }
 

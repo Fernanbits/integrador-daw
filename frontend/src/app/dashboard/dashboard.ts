@@ -262,7 +262,7 @@ export class Dashboard implements OnInit {
                 <span class="section-label">${riesgosFiltrados.length} detectados</span>
               </div>
               <table>
-                <thead><tr><th>Proyecto</th><th>Pulso</th><th>Puntaje</th><th>Avance</th><th>Recomendacion</th></tr></thead>
+                <thead><tr><th>Proyecto</th><th>Pulso</th><th>Puntaje</th><th>Avance</th><th>Recomendación</th></tr></thead>
                 <tbody>${riesgos || '<tr><td colspan="5">Sin proyectos para los filtros seleccionados.</td></tr>'}</tbody>
               </table>
             </section>`
@@ -372,7 +372,6 @@ export class Dashboard implements OnInit {
           }
           .stamp span,
           .metric span,
-          th,
           .section-label {
             display: block;
             font-size: 10px;
@@ -468,6 +467,10 @@ export class Dashboard implements OnInit {
           th {
             background: #efede5;
             color: #59615d;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0;
+            text-transform: uppercase;
           }
           tr:nth-child(even) td {
             background: #faf8f1;
