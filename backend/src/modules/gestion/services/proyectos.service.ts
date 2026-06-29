@@ -335,17 +335,28 @@ export class ProyectosService {
       .andWhere('tarea.fechaVencimiento >= CURRENT_DATE')
       .andWhere("tarea.fechaVencimiento <= CURRENT_DATE + INTERVAL '7 days'")
       .orderBy('tarea.fechaVencimiento', 'ASC')
-      .addOrderBy(
-        `CASE tarea.prioridad
-          WHEN 'ALTA' THEN 1
-          WHEN 'MEDIA' THEN 2
-          WHEN 'BAJA' THEN 3
-          ELSE 4
-        END`,
-        'ASC',
-      )
-      .take(8)
       .getMany();
+    const prioridadOrden: Record<string, number> = {
+      ALTA: 1,
+      MEDIA: 2,
+      BAJA: 3,
+    };
+    const proximosOrdenados = proximos
+      .sort((a, b) => {
+        const diferenciaFecha =
+          new Date(a.fechaVencimiento!).getTime() -
+          new Date(b.fechaVencimiento!).getTime();
+
+        if (diferenciaFecha !== 0) {
+          return diferenciaFecha;
+        }
+
+        return (
+          (prioridadOrden[a.prioridad] ?? 4) -
+          (prioridadOrden[b.prioridad] ?? 4)
+        );
+      })
+      .slice(0, 8);
 
     const pulso = {
       estables: 0,
@@ -404,7 +415,7 @@ export class ProyectosService {
       },
       pulso,
       proyectosEnRiesgo: proyectosEnRiesgo.slice(0, 8),
-      proximosVencimientos: proximos.map((tarea) => ({
+      proximosVencimientos: proximosOrdenados.map((tarea) => ({
         id: tarea.id,
         descripcion: tarea.descripcion,
         estado: tarea.estado,
