@@ -1,6 +1,6 @@
 # Backend de PULSO
 
-API REST construida con NestJS 11, TypeORM y PostgreSQL. Implementa autenticacion JWT, validacion de entradas y las reglas de negocio para usuarios, clientes, proyectos y tareas. Tambien expone la bitacora de cada proyecto como una linea de tiempo calculada desde los datos existentes.
+API REST construida con NestJS 11, TypeORM y PostgreSQL. Implementa autenticacion JWT, validacion de entradas y las reglas de negocio para usuarios, clientes, proyectos y tareas. Tambien resuelve los datos del dashboard, la planificacion de tareas y la bitacora de cada proyecto.
 
 ## Configuracion
 
@@ -21,6 +21,8 @@ Las tareas admiten dos campos de planificacion:
 
 - `prioridad`: `ALTA`, `MEDIA` o `BAJA`;
 - `fechaVencimiento`: fecha opcional en formato `YYYY-MM-DD`.
+
+Estos campos se usan tanto en el tablero Kanban como en los indicadores del dashboard.
 
 En bases existentes, aplicar `scripts/migrate-task-planning-fields.ps1` antes de desplegar el backend con estas columnas.
 
